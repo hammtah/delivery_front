@@ -1,0 +1,1764 @@
+{
+	"info": {
+		"_postman_id": "cf72b5d4-dab5-4993-96b5-c9fdf744efcb",
+		"name": "Delivery",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32818546"
+	},
+	"item": [
+		{
+			"name": "Register workflow",
+			"item": [
+				{
+					"name": "Plan",
+					"item": [
+						{
+							"name": "Get all Plans",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/plan",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"plan"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create plan",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if(pm.response.json().data && pm.response.json().data.id)\r",
+											"    pm.globals.set('plan_id', pm.response.json().data.id);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\t\"name\": \"{{$randomAdjective}}\",\r\n    \"monthly_price\": {{$randomInt}},\r\n    \"yearly_price\": {{$randomInt}},\r\n    \"delivery_limit\": {{$randomInt}},\r\n    \"drivers_limit\": {{$randomInt}},\r\n    \"ai_suggestions\": {{$randomBoolean}},\r\n    \"admin_id\": 1,\r\n    \"trial_duration\": 7,\r\n    \"features\": [\"Support 7/24\", \"Fancy UI\", \"Good support\"]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/plan",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"plan"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get plan details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/plan/{{plan_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"plan",
+										"{{plan_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edit plan",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\t\"name\": \"{{$randomAdjective}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/plan/{{plan_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"plan",
+										"{{plan_id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "signup",
+					"item": [
+						{
+							"name": "signup with email verification",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// pm.globals.set('email', pm.request.json());\r",
+											"let body = JSON.parse(pm.request.body.raw);\r",
+											"let email = body.email;\r",
+											"let password = body.password;\r",
+											"pm.globals.set('email',email);\r",
+											"pm.globals.set('password', password);\r",
+											"console.log(pm.response.json().data.subscriptions.length-1)\r",
+											"if(pm.response.json().data ){\r",
+											"    if(pm.response.json().data.subscriptions && pm.response.json().data.subscriptions[pm.response.json().data.subscriptions.length-1] && pm.response.json().data.subscriptions[pm.response.json().data.subscriptions.length-1].sub_id )\r",
+											"    pm.globals.set('subscription_id', pm.response.json().data.subscriptions[pm.response.json().data.subscriptions.length-1].sub_id);\r",
+											"    if(pm.response.json().data.id)\r",
+											"        pm.globals.set('id', pm.response.json().data.id);\r",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{$randomFullName}}\",\r\n    \"email\": \"{{$randomEmail}}\",\r\n    \"password\": \"{{$randomPassword}}\",\r\n    \"phone\": \"{{$randomPhoneNumber}}\",\r\n    \"role\": \"restaurants_admin\",\r\n    \"plan_id\": \"{{plan_id}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/signup",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"signup"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"// pm.globals.set('verify_token', )",
+											"pm.globals.set('verify_token', pm.response.json().token)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"\r",
+											"const roles = ['admin', 'client', 'restaurants_admin', 'driver', 'employee'];\r",
+											"pm.globals.set('randomRole', roles[Math.floor(Math.random() * roles.length)]);\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"{{email}}\",\r\n    \"password\": \"{{password}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/login",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"login"
+									]
+								},
+								"description": "This is a GET request and it is used to \"get\" data from an endpoint. There is no request body for a GET request, but you can use query parameters to help specify the resource you want data on (e.g., in this request, we have `id=1`).\n\nA successful GET response will have a `200 OK` status, and should include some kind of response body - for example, HTML web content or JSON data."
+							},
+							"response": []
+						},
+						{
+							"name": "verifiy email",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verifiy_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://127.0.0.1:8000/api/email/verify/70/14acea9dda5d3df86dc6bfbf643da60b30fa95a1?expires=1746441050&signature=72dddfed2a4e1280e7de5f1eef4e961b10875546f1920d6f50d356b0c66a5fa9",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"email",
+										"verify",
+										"70",
+										"14acea9dda5d3df86dc6bfbf643da60b30fa95a1"
+									],
+									"query": [
+										{
+											"key": "expires",
+											"value": "1746441050"
+										},
+										{
+											"key": "signature",
+											"value": "72dddfed2a4e1280e7de5f1eef4e961b10875546f1920d6f50d356b0c66a5fa9"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "subscription expire",
+					"item": [
+						{
+							"name": "get resource",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/restaurants-admin/{{id}}/subscriptions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"restaurants-admin",
+										"{{id}}",
+										"subscriptions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "edit subscription end",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"sub_start\": \"2025-04-01T18:44:56.000000Z\",\r\n    \"sub_end\": \"2025-05-10T18:44:56.000000Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/subscription/{{subscription_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"subscription",
+										"{{subscription_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get resource after subscription ending",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/restaurants-admin/{{id}}/subscriptions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"restaurants-admin",
+										"{{id}}",
+										"subscriptions"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Subscribe",
+					"item": [
+						{
+							"name": "Get Subscriptions",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/restaurants-admin/{{id}}/subscriptions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"restaurants-admin",
+										"{{id}}",
+										"subscriptions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Subscribe having active subscription",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"plan_id\": {{plan_id}},\r\n    \"type\": \"monthly\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/subscribe",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"subscribe"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Subscribe having no active subscription",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"plan_id\": {{plan_id}},\r\n    \"type\": \"monthly\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/subscribe",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"subscribe"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Make payment",
+					"item": [
+						{
+							"name": "make payment",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"payment_method\": \"debit_card\",\r\n    \"amount\": 234,\r\n    \"sub_id\": {{subscription_id}},\r\n    \"type\": \"yearly\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/make-payment",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"make-payment"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get payments",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/payment",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"payment"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Restaurants Admin workflow",
+			"item": [
+				{
+					"name": "Restaurants Management",
+					"item": [
+						{
+							"name": "Working Hours",
+							"item": [
+								{
+									"name": "Create working hour",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.globals.set('working_hours_id', pm.response.json().id);"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{verify_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"name\": \"Holiday Program\",\r\n    \"working-days\":[\r\n        {\r\n            \"eday\": \"monday\",\r\n            \"times\": [\r\n                {\r\n                    \"start\": \"08:30\",\r\n                    \"end\": \"10:30\"\r\n                },\r\n                {\r\n                    \"start\": \"12:30\",\r\n                    \"end\": \"16:30\"\r\n                },\r\n                {\r\n                    \"start\": \"20:30\",\r\n                    \"end\": \"00:30\"\r\n                }\r\n            ]\r\n        },\r\n        {\r\n            \"eday\": \"tuesday\",\r\n            \"times\": [\r\n                {\r\n                    \"start\": \"08:30\",\r\n                    \"end\": \"02:30\"\r\n                }\r\n            ]\r\n        },\r\n        {\r\n            \"special_date\": \"12-02-2000\"\r\n        }\r\n        \r\n    ]\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/restaurant/{{restaurant_id}}/working-hours",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"restaurant",
+												"{{restaurant_id}}",
+												"working-hours"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "get working hours",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{verify_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text",
+												"disabled": true
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/restaurant/{{restaurant_id}}/working-hours",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"restaurant",
+												"{{restaurant_id}}",
+												"working-hours"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update working hour",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{verify_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"name\": \"a Program\",\r\n    \"working-days\":[\r\n        {\r\n            \"eday\": \"friday\",\r\n            \"times\": [\r\n                {\r\n                    \"start\": \"08:30\",\r\n                    \"end\": \"02:30\"\r\n                }\r\n            ]\r\n        },\r\n        {\r\n            \"eday\": \"tuesday\",\r\n            \"times\": [\r\n                {\r\n                    \"start\": \"14:30\",\r\n                    \"end\": \"02:30\"\r\n                },\r\n                {\r\n                    \"start\": \"14:30\",\r\n                    \"end\": \"02:30\"\r\n                }\r\n            ]\r\n        }\r\n    ]\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/restaurant/{{restaurant_id}}/working-hours/40",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"restaurant",
+												"{{restaurant_id}}",
+												"working-hours",
+												"40"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Working Hour",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{verify_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "{{base_url}}/restaurant/{{restaurant_id}}/working-hours/38",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"restaurant",
+												"{{restaurant_id}}",
+												"working-hours",
+												"38"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "deactivate a working hour",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{verify_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/restaurant/45/working-hours/47/deactivate",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"restaurant",
+												"45",
+												"working-hours",
+												"47",
+												"deactivate"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Create Restaurant",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{$randomCompanyName}}\",\r\n    \"description\": \"{{$randomLoremParagraph}}\",\r\n    \"address\" : {\r\n        \"street\": \"{{$randomStreetName}}\",\r\n        \"city\": \"{{$randomCity}}\",\r\n        \"neighberhood\": \"\",\r\n        \"street_code\": {{$randomInt}},\r\n        \"postal_code\": {{$randomInt}},\r\n        \"province\": \"{{$randomCity}}\",\r\n        \"position\":{\r\n            \"name\": \"{{$randomWord}}\",\r\n            \"longitude\": \"{{randomFloat}}\",\r\n            \"latitude\": \"{{randomFloat}}\"\r\n        }\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/restaurant",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"restaurant"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get restaurants admin",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/restaurants-admin/{{id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"restaurants-admin",
+										"{{id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get retaurants",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.globals.set('restaurant_id', pm.response.json().data[Math.floor(Math.random()*pm.response.json().data.length)].id);\r",
+											"console.log(pm.globals.get('restaurant_id'))"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/restaurant",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"restaurant"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create item",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{$randomProductName}}\",\r\n    \"price\": {{$randomPrice}},\r\n    \"status\": \"available\",\r\n    \"restaurant_ids\":[1, 2]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/item",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"item"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get items",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/item",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"item"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Zone Management",
+					"item": [
+						{
+							"name": "Create zone",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.globals.set('randomFloat', Math.trunc(Math.random()*10000000));\r",
+											"console.log(Math.trunc(Math.random()*10000000))\r",
+											"const randomElement = (array) => {\r",
+											"    return array[Math.floor(Math.random()*array.length)]\r",
+											"}\r",
+											"\r",
+											"pm.globals.set('randomElement([\\'active\\', \\'inactive\\'])', randomElement(['active', 'inactive']));\r",
+											"pm.globals.set('randomElement([\\'circle\\', \\'polygon\\', \\'none\\'])', randomElement(['circle', 'polygon', 'none']));\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{$randomWord}}\",\r\n  \"status\": \"{{randomElement(['active', 'inactive'])}}\",\r\n  \"radius\": \"{{randomFloat}}\",\r\n  \"type\": \"{{randomElement(['circle', 'polygon', 'none'])}}\",\r\n  \"user_fees\": \"{{randomFloat}}\",\r\n  \"partial_commission\": \"{{randomFloat}}\",\r\n  \"full_commission\": \"{{randomFloat}}\",\r\n  \"points\": [\r\n    {\r\n      \"position\":{\r\n        \"name\": \"{{$randomWord}}\",\r\n        \"longitude\": \"{{randomFloat}}\",\r\n        \"latitude\": \"{{randomFloat}}\"\r\n      }\r\n    },\r\n    {\r\n      \"street\": \"{{$randomStreetAddress}}\",\r\n      \"city\": \"{{$randomCity}}\",\r\n      \"neighberhood\": \"{{$randomWord}}\",\r\n      \"street_code\": \"{{$randomInt}}\",\r\n      \"postal_code\": \"{{$randomInt}}\",\r\n      \"province\": \"{{$randomCountry}}\",\r\n      \"position\":{\r\n        \"name\": \"{{$randomWord}}\",\r\n        \"longitude\": \"{{randomFloat}}\",\r\n        \"latitude\": \"{{randomFloat}}\"\r\n      }\r\n    },\r\n    {\r\n      \"street\": \"{{$randomStreetAddress}}\",\r\n      \"city\": \"{{$randomCity}}\",\r\n      \"neighberhood\": \"{{$randomWord}}\",\r\n      \"street_code\": \"{{$randomInt}}\",\r\n      \"postal_code\": \"{{$randomInt}}\",\r\n      \"province\": \"{{$randomCountry}}\",\r\n      \"position\":{\r\n        \"name\": \"{{$randomWord}}\",\r\n        \"longitude\": \"{{randomFloat}}\",\r\n        \"latitude\": \"{{randomFloat}}\"\r\n      }\r\n    }\r\n  ],\r\n  \"address\": \r\n    {\r\n      \"street\": \"{{$randomStreetAddress}}\",\r\n      \"city\": \"{{$randomCity}}\",\r\n      \"neighberhood\": \"{{$randomWord}}\",\r\n      \"street_code\": \"{{$randomInt}}\",\r\n      \"postal_code\": \"{{$randomInt}}\",\r\n      \"province\": \"{{$randomCountry}}\"\r\n    }\r\n  \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/zone",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"zone"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get zones",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let zone_id = pm.response.json().data[0].zone_id\r",
+											"pm.globals.set('zone_id',zone_id)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/zone",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"zone"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update zone",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.globals.set('randomFloat', Math.trunc(Math.random()*10000000));\r",
+											"console.log(Math.trunc(Math.random()*10000000))\r",
+											"const randomElement = (array) => {\r",
+											"    return array[Math.floor(Math.random()*array.length)]\r",
+											"}\r",
+											"\r",
+											"pm.globals.set('randomElement([\\'active\\', \\'inactive\\'])', randomElement(['active', 'inactive']));\r",
+											"pm.globals.set('randomElement([\\'circle\\', \\'polygon\\', \\'none\\'])', randomElement(['circle', 'polygon', 'none']));\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"status\": \"{{randomElement(['active', 'inactive'])}}\",\r\n  \"radius\": \"{{randomFloat}}\",\r\n  \"type\": \"{{randomElement(['circle', 'polygon', 'none'])}}\",\r\n  \"user_fees\": \"{{randomFloat}}\",\r\n  \"partial_commission\": \"{{randomFloat}}\",\r\n  \"full_commission\": \"{{randomFloat}}\",\r\n  \"points\": [\r\n    {\r\n      \"address_id\": 65, \r\n      \"position\":{\r\n        \"name\": \"{{$randomWord}}\",\r\n        \"longitude\": \"{{randomFloat}}\",\r\n        \"latitude\": \"{{randomFloat}}\"\r\n      }\r\n    },\r\n    {\r\n      \"address_id\": 66,\r\n      \"street\": \"{{$randomStreetAddress}}\",\r\n      \"city\": \"{{$randomCity}}\",\r\n      \"neighberhood\": \"{{$randomWord}}\",\r\n      \"street_code\": \"{{$randomInt}}\",\r\n      \"postal_code\": \"{{$randomInt}}\",\r\n      \"province\": \"{{$randomCountry}}\",\r\n      \"position\":{\r\n        \"name\": \"{{$randomWord}}\",\r\n        \"longitude\": \"{{randomFloat}}\",\r\n        \"latitude\": \"{{randomFloat}}\"\r\n      }\r\n    },\r\n    {\r\n      \"address_id\": 67,\r\n      \"street\": \"{{$randomStreetAddress}}\",\r\n      \"city\": \"{{$randomCity}}\",\r\n      \"neighberhood\": \"{{$randomWord}}\",\r\n      \"street_code\": \"{{$randomInt}}\",\r\n      \"postal_code\": \"{{$randomInt}}\",\r\n      \"province\": \"{{$randomCountry}}\",\r\n      \"position\":{\r\n        \"name\": \"{{$randomWord}}\",\r\n        \"longitude\": \"{{randomFloat}}\",\r\n        \"latitude\": \"{{randomFloat}}\"\r\n      }\r\n    },\r\n    {\r\n      \"address_id\": null,\r\n      \"position\":{\r\n        \"name\": \"Testo Position\",\r\n        \"longitude\": \"{{randomFloat}}\",\r\n        \"latitude\": \"{{randomFloat}}\"\r\n      }\r\n    }\r\n  ],\r\n  \"address\": \r\n    {\r\n      \"street\": \"{{$randomStreetAddress}}\",\r\n      \"city\": \"{{$randomCity}}\",\r\n      \"neighberhood\": \"{{$randomWord}}\",\r\n      \"street_code\": \"{{$randomInt}}\",\r\n      \"postal_code\": \"{{$randomInt}}\",\r\n      \"province\": \"{{$randomCountry}}\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/restaurant/{{restaurant_id}}/zone/52",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"restaurant",
+										"{{restaurant_id}}",
+										"zone",
+										"52"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get a zone",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/zone/52",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"zone",
+										"52"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Driver Mangement",
+					"item": [
+						{
+							"name": "working hours",
+							"item": [
+								{
+									"name": "attach-drivers",
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"drivers\":[\r\n        2\r\n    ]\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/working-hours/1/attach-drivers",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"working-hours",
+												"1",
+												"attach-drivers"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "attach-working-hours to drivers",
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"workingHours\":[\r\n        1,2\r\n    ]\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/drivers/1/attach-working-hours",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"drivers",
+												"1",
+												"attach-working-hours"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "get drivers working-hours",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{verify_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/drivers/working-hours",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"drivers",
+												"working-hours"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Create driver",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\":\"{{$randomFullName}}\",\r\n    \"email\":\"{{$randomEmail}}\",\r\n    \"password\":\"{{$randomPassword}}\",\r\n    \"phone\":\"{{$randomPhoneNumber}}\",\r\n    \"type\":\"both\",\r\n    \"restaurants\":[1,2,3]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/driver",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"driver"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get drivers",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/driver",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"driver"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update driver",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\":\"{{$randomFullName}}\",\r\n    \"email\":\"{{$randomEmail}}\",\r\n    \"password\":\"{{$randomPassword}}\",\r\n    \"phone\":\"{{$randomPhoneNumber}}\",\r\n    \"type\":\"both\",\r\n    \"restaurants\":[1,2,3],\r\n    \"status\": \"online\",\r\n    \"current_address_id\": 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/driver/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"driver",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get a busy driver",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"//driver ids: 39, 40, 41"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/driver/41",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"driver",
+										"41"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "suspend driver",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/driver/2/suspend",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"driver",
+										"2",
+										"suspend"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "change availability",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/driver/2/availability",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"driver",
+										"2",
+										"availability"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Delivery",
+					"item": [
+						{
+							"name": "Create Scheduled Delivery",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"client_id\": 1,\r\n  \"restaurant_id\": 1,\r\n  \"address_id\": 1,\r\n  \"items\": [\r\n    { \"id\": 1, \"quantity\": 2 },\r\n    { \"id\": 2, \"quantity\": 3 }\r\n  ],\r\n  \"full_commission\": 10.5,\r\n  \"partial_commission\": 5.25,\r\n  \"payment_type\": \"card\",\r\n  \"type\": \"schedule\",\r\n  \"fees\": 2.5,\r\n  \"delivery_time\": \"2025-05-13T17:00:00\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/delivery",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"delivery"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create ASAP delivery",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"client_id\": 1,\r\n  \"restaurant_id\": 1,\r\n  \"address_id\": 1,\r\n  \"items\": [\r\n    { \"id\": 1, \"quantity\": 2 },\r\n    { \"id\": 2, \"quantity\": 1 }\r\n  ],\r\n  \"full_commission\": 10.5,\r\n  \"partial_commission\": 5.25,\r\n  \"payment_type\": \"cod\",\r\n  \"type\": \"asap\",\r\n  \"fees\": 2.5,\r\n  \"delivery_time\": \"2025-05-13T17:00:00\",\r\n  \"driver_id\": 1\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/delivery",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"delivery"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Distance to restaurant api",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{verify_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/driver/21/distance-to-restaurant/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"driver",
+										"21",
+										"distance-to-restaurant",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get distance to restaurant haversine",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/driver/21/distance-to-restaurant/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"driver",
+										"21",
+										"distance-to-restaurant",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get available drivers(busy drivers)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/restaurant/27/available-drivers",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"restaurant",
+										"27",
+										"available-drivers"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get available online drivers (order by the closest)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/restaurant/28/available-drivers",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"restaurant",
+										"28",
+										"available-drivers"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "randomFloat",
+			"value": ""
+		},
+		{
+			"key": "randomElement",
+			"value": ""
+		}
+	]
+}
