@@ -27,6 +27,46 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "@/components/ui/select"
+  
+import { Skeleton } from "@/components/ui/skeleton"
+import { toast } from "sonner"
+import {Toaster} from "@/components/ui/sonner"
+
+function TableSkeleton() {
+  return (
+    <TableBody>
+      {Array.from({ length: 10 }).map((_, index) => (
+        <TableRow key={index}>
+            
+          <TableCell><Skeleton className="h-4 w-[100px] bg-gray-200" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-[80px] bg-gray-200" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-[80px] bg-gray-200" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-[60px] bg-gray-200" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-[60px] bg-gray-200" /></TableCell>
+          <TableCell>
+            <div className="flex gap-1">
+              <Skeleton className="h-6 w-[60px] rounded-full bg-gray-200" />
+              <Skeleton className="h-6 w-[60px] rounded-full bg-gray-200" />
+            </div>
+          </TableCell>
+          <TableCell className="text-right">
+            <div className="flex justify-end gap-2">
+              <Skeleton className="h-8 w-8 rounded-md bg-gray-200" />
+              <Skeleton className="h-8 w-8 rounded-md bg-gray-200" />
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  )
+}
 
 export default function PlansPage() {
   const [plans, setPlans] = useState([])
@@ -34,9 +74,10 @@ export default function PlansPage() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [planToDelete, setPlanToDelete] = useState(null)
-
+  const [isLoading, setIsLoading] = useState(true)
   const fetchPlans = async () => {
     try {
+      setIsLoading(true)
       const response = await fetch('http://127.0.0.1:8000/api/plan', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -46,6 +87,9 @@ export default function PlansPage() {
       setPlans(data.data)
     } catch (error) {
       console.error('Error fetching plans:', error)
+    }
+    finally {
+      setIsLoading(false)
     }
   }
 
@@ -64,16 +108,23 @@ export default function PlansPage() {
         },
         body: JSON.stringify({
           ...formData,
-          admin_id: 1 // This should come from your auth context
+        //   admin_id: 1 
         })
       })
 
       if (response.ok) {
         setIsFormOpen(false)
+        // Toaster.success('Plan created successfully')
+        toast(`Plan ${formData.name} created successfully`, {
+          icon: '🎉'
+        })
         fetchPlans()
       }
     } catch (error) {
       console.error('Error creating plan:', error)
+      toast('Error creating plan', {
+        icon: '🚨'
+      })
     }
   }
 
@@ -92,10 +143,16 @@ export default function PlansPage() {
       if (response.ok) {
         setIsFormOpen(false)
         setSelectedPlan(null)
+        toast(`Plan ${formData.name} updated successfully`, {
+          icon: '✨'
+        })
         fetchPlans()
       }
     } catch (error) {
       console.error('Error updating plan:', error)
+      toast('Error updating plan', {
+        icon: '🚨'
+      })
     }
   }
 
@@ -111,10 +168,16 @@ export default function PlansPage() {
       if (response.ok) {
         setIsDeleteDialogOpen(false)
         setPlanToDelete(null)
+        toast(`Plan ${planToDelete.name} deleted successfully`, {
+          icon: '🗑️'
+        })
         fetchPlans()
       }
     } catch (error) {
       console.error('Error deleting plan:', error)
+      toast('Error deleting plan', {
+        icon: '🚨'
+      })
     }
   }
 
@@ -144,53 +207,59 @@ export default function PlansPage() {
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {plans.map((plan) => (
-              <TableRow key={plan.id}>
-                <TableCell>{plan.name}</TableCell>
-                <TableCell>${plan.monthly_price}</TableCell>
-                <TableCell>${plan.yearly_price}</TableCell>
-                <TableCell>{plan.delivery_limit}</TableCell>
-                <TableCell>{plan.drivers_limit}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {plan.features.map((feature, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs"
+          {isLoading ? (
+            <TableSkeleton />
+          ) : (
+            <TableBody>
+              {plans.map((plan) => (
+                <TableRow key={plan.id}>
+                  <TableCell>{plan.name}</TableCell>
+                  <TableCell>{'$'+plan.monthly_price}</TableCell>
+                  <TableCell>{'$'+plan.yearly_price}</TableCell>
+                  <TableCell>{plan.delivery_limit}</TableCell>
+                  <TableCell>{plan.drivers_limit}</TableCell>
+                  <TableCell>
+                  <Select>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Features" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {plan.features.map((feature) => (
+                            <SelectItem key={feature} value={feature}>{feature}</SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedPlan(plan)
+                          setIsFormOpen(true)
+                        }}
+                        disabled={isLoading}
                       >
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        setSelectedPlan(plan)
-                        setIsFormOpen(true)
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        setPlanToDelete(plan)
-                        setIsDeleteDialogOpen(true)
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          setPlanToDelete(plan)
+                          setIsDeleteDialogOpen(true)
+                        }}
+                        disabled={isLoading}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          )}
         </Table>
       </div>
 
