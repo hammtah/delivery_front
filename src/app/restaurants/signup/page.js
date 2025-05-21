@@ -1,0 +1,183 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+
+export default function RestaurantSignup() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const [loading, setLoading] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        plan_id: searchParams.get('plan') || ''
+    });
+
+    useEffect(() => {
+        const fetchPlanDetails = async () => {
+            if (!formData.plan_id) {
+                toast.error('No plan selected');
+                router.push('/restaurants/pricing');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/plan/${formData.plan_id}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    setSelectedPlan(data.data);
+                } else {
+                    throw new Error(data.message || 'Failed to fetch plan details');
+                }
+            } catch (error) {
+                toast.error('Failed to load plan details');
+                router.push('/restaurants/pricing');
+            }
+        };
+
+        fetchPlanDetails();
+    }, [formData.plan_id, router]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/restaurants-admin/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    role: 'restaurants_admin'
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Signup failed');
+            }
+
+            toast.success('Account created successfully!');
+            router.push('/restaurants/login');
+        } catch (error) {
+            toast.error(error.message || 'Something went wrong');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!selectedPlan) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <Card className="w-full max-w-md">
+                <CardHeader>
+                    <CardTitle className="text-2xl font-bold text-center">Restaurant Owner Signup</CardTitle>
+                    <CardDescription className="text-center">
+                        Create your account to manage your restaurants
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <h3 className="font-semibold text-blue-900 mb-2">Selected Plan: {selectedPlan.name}</h3>
+                        <p className="text-sm text-blue-700">
+                            {selectedPlan.trial_duration}-day free trial included
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input
+                                id="name"
+                                name="name"
+                                type="text"
+                                required
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="John Doe"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                required
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="john@example.com"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="phone">Phone Number</Label>
+                            <Input
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                required
+                                value={formData.phone}
+                                onChange={handleChange}
+                                placeholder="+1 (555) 000-0000"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                name="password"
+                                type="password"
+                                required
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={loading}
+                        >
+                            {loading ? 'Creating Account...' : 'Create Account'}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
+    );
+} 
