@@ -15,12 +15,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, User, CreditCard, PauseCircle } from 'lucide-react';
+import { MoreVertical, User, CreditCard, PauseCircle, TrendingUp, Users, DollarSign, Activity } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 export default function PlanPage({ params }) {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [suspend, setSuspend] = useState(false);
     const [filters, setFilters] = useState({
         status: 'all',
         type: 'all'
@@ -49,7 +52,7 @@ export default function PlanPage({ params }) {
         };
 
         fetchPlan();
-    }, [params.id]);
+    }, [params.id, suspend]);
 
     if (loading) {
         return (
@@ -110,12 +113,102 @@ export default function PlanPage({ params }) {
 
     const handleSuspendSubscription = (subscription) => {
         // TODO: Implement suspend subscription action
+        setSuspend(true);
         console.log('Suspend subscription:', subscription);
     };
 
     const handleViewPayments = (payments) => {
         // TODO: Implement view payments action
         console.log('View payments:', payments);
+    };
+
+    const calculateStatistics = () => {
+        if (!plan) return null;
+
+        const stats = {
+            totalRevenue: 0,
+            totalSubscriptions: plan.subscriptions.length,
+            activeSubscriptions: plan.subscriptions.filter(sub => sub.status === 'active').length,
+            totalPayments: plan.subscriptions.reduce((acc, sub) => acc + sub.payments.length, 0),
+            monthlyRevenue: 0,
+            yearlyRevenue: 0,
+            statusDistribution: {
+                active: 0,
+                pending: 0,
+                trial: 0,
+                expired: 0,
+                canceled: 0
+            },
+            typeDistribution: {
+                monthly: 0,
+                yearly: 0
+            }
+        };
+
+        plan.subscriptions.forEach(subscription => {
+            // Calculate revenue
+            subscription.payments.forEach(payment => {
+                stats.totalRevenue += payment.amount;
+                if (subscription.type === 'monthly') {
+                    stats.monthlyRevenue += payment.amount;
+                } else {
+                    stats.yearlyRevenue += payment.amount;
+                }
+            });
+
+            // Count status distribution
+            stats.statusDistribution[subscription.status] = (stats.statusDistribution[subscription.status] || 0) + 1;
+            
+            // Count type distribution
+            stats.typeDistribution[subscription.type] = (stats.typeDistribution[subscription.type] || 0) + 1;
+        });
+
+        return stats;
+    };
+
+    const stats = calculateStatistics();
+
+    const getChartData = () => {
+        if (!stats) return null;
+
+        return {
+            revenueData: [
+                { name: 'Monthly', value: stats.monthlyRevenue },
+                { name: 'Yearly', value: stats.yearlyRevenue }
+            ],
+            statusData: Object.entries(stats.statusDistribution).map(([status, count]) => ({
+                name: status.charAt(0).toUpperCase() + status.slice(1),
+                value: count
+            })),
+            typeData: [
+                { name: 'Monthly', value: stats.typeDistribution.monthly },
+                { name: 'Yearly', value: stats.typeDistribution.yearly }
+            ]
+        };
+    };
+
+    const chartData = getChartData();
+
+    const COLORS = {
+        revenue: ['#3b82f6', '#10b981'],
+        status: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#6b7280', '#0ea5e9'],
+        type: ['#8b5cf6', '#3b82f6']
+    };
+
+    const CustomTooltip = ({ active, payload }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-white p-2 border rounded shadow-lg">
+                    <p className="font-medium">{payload[0].name}</p>
+                    <p className="text-sm">
+                        {payload[0].name === 'Monthly' || payload[0].name === 'Yearly' 
+                            ? `$${payload[0].value}`
+                            : payload[0].value}
+                    </p>
+                </div>
+            );
+        }
+        return null;
     };
 
     return (
@@ -173,6 +266,117 @@ export default function PlanPage({ params }) {
                         </div>
                     </div>
                 </div>
+                
+                {/* Statistics Section */}
+                {stats && chartData && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <DollarSign className="h-5 w-5 text-blue-500" />
+                                    Revenue Distribution
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[300px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={chartData.revenueData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                fill="#8884d8"
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                            >
+                                                {chartData.revenueData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS.revenue[index % COLORS.revenue.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip content={<CustomTooltip />} />
+                                            <Legend />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <p className="text-2xl font-bold">${stats.totalRevenue}</p>
+                                    <p className="text-sm text-muted-foreground">Total Revenue</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-purple-500" />
+                                    Subscription Status
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[300px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart className='flex gap-8'>
+                                            <Pie
+                                                data={chartData.statusData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                fill="#8884d8"
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                            >
+                                                {chartData.statusData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS.status[index % COLORS.status.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip content={<CustomTooltip />} />
+                                            <Legend />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <p className="text-2xl font-bold">{stats.totalSubscriptions}</p>
+                                    <p className="text-sm text-muted-foreground">Total Subscriptions</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className='col-span-2'>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Activity className="h-5 w-5 text-orange-500" />
+                                    Key Metrics
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 bg-blue-50 rounded-lg">
+                                        <p className="text-sm text-blue-600">Active Subscriptions</p>
+                                        <p className="text-2xl font-bold text-blue-900">{stats.activeSubscriptions}</p>
+                                    </div>
+                                    <div className="p-4 bg-green-50 rounded-lg">
+                                        <p className="text-sm text-green-600">Monthly Revenue</p>
+                                        <p className="text-2xl font-bold text-green-900">${stats.monthlyRevenue}</p>
+                                    </div>
+                                    <div className="p-4 bg-purple-50 rounded-lg">
+                                        <p className="text-sm text-purple-600">Yearly Revenue</p>
+                                        <p className="text-2xl font-bold text-purple-900">${stats.yearlyRevenue}</p>
+                                    </div>
+                                    <div className="p-4 bg-orange-50 rounded-lg">
+                                        <p className="text-sm text-orange-600">Average Revenue/Sub</p>
+                                        <p className="text-2xl font-bold text-orange-900">
+                                            ${stats.totalSubscriptions ? Math.round(stats.totalRevenue / stats.totalSubscriptions) : 0}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
 
                 {/* Subscriptions Section */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
@@ -271,13 +475,13 @@ export default function PlanPage({ params }) {
                                                         <User className="h-4 w-4" />
                                                         <span>View Owner</span>
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem
+                                                    {subscription.status!='suspended' && <DropdownMenuItem
                                                         onClick={() => handleSuspendSubscription(subscription)}
                                                         className="flex items-center gap-2"
                                                     >
                                                         <PauseCircle className="h-4 w-4" />
                                                         <span>Suspend Subscription</span>
-                                                    </DropdownMenuItem>
+                                                    </DropdownMenuItem>}
                                                     <DropdownMenuItem
                                                         onClick={() => handleViewPayments(subscription.payments)}
                                                         className="flex items-center gap-2"
