@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -9,8 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Eye } from 'lucide-react'
 import { PlanForm } from "@/components/admin/PlanForm"
+import { buttonVariants } from "@/components/ui/button"
+
 import {
   Dialog,
   DialogContent,
@@ -203,6 +206,8 @@ export default function PlansPage() {
               <TableHead>Yearly Price</TableHead>
               <TableHead>Delivery Limit</TableHead>
               <TableHead>Drivers Limit</TableHead>
+              <TableHead>Trial Duration</TableHead>
+              <TableHead>AI Suggestions</TableHead>
               <TableHead>Features</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -218,6 +223,8 @@ export default function PlansPage() {
                   <TableCell>{'$'+plan.yearly_price}</TableCell>
                   <TableCell>{plan.delivery_limit}</TableCell>
                   <TableCell>{plan.drivers_limit}</TableCell>
+                  <TableCell>{plan.trial_duration} days</TableCell>
+                  <TableCell>{plan.ai_suggestions ? 'Yes' : 'No'}</TableCell>
                   <TableCell>
                   <Select>
                     <SelectTrigger className="w-[180px]">
@@ -232,6 +239,18 @@ export default function PlansPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      {/* view */}
+                      <Button asChild   variant="outline" size="icon"
+                        onClick={() => {
+                          setSelectedPlan(plan)
+                        }}
+                        disabled={isLoading}
+                      >
+                        <Link className={buttonVariants({ variant: "outline",size:"icon" })} href={`/admin/plans/${plan.id}`}>             
+                            <Eye className="h-4 w-4" />
+                        </Link>
+                        </Button>
+                      {/* update */}
                       <Button
                         variant="outline"
                         size="icon"
@@ -243,6 +262,7 @@ export default function PlansPage() {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
+                      {/* delete */}
                       <Button
                         variant="outline"
                         size="icon"

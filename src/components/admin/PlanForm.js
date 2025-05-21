@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { ButtonLoading } from "@/components/ui/button-loading"
 
 export function PlanForm({ plan, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -19,9 +20,10 @@ export function PlanForm({ plan, onSubmit, onCancel }) {
   })
 
   const [newFeature, setNewFeature] = useState("")
-
+  const [isSubmiting, setIsSubmiting] = useState(false)
   const handleSubmit = (e) => {
     e.preventDefault()
+    setIsSubmiting(true)
     onSubmit(formData)
   }
 
@@ -163,8 +165,8 @@ export function PlanForm({ plan, onSubmit, onCancel }) {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">
-          {plan ? "Update Plan" : "Create Plan"}
+        <Button type="submit" disabled={isSubmiting}>
+          {isSubmiting ? <ButtonLoading text="Submitting..." /> : plan ? "Update Plan" : "Create Plan"}
         </Button>
       </div>
     </form>
