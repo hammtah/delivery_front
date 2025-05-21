@@ -15,7 +15,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, User, CreditCard, PauseCircle, TrendingUp, Users, DollarSign, Activity } from 'lucide-react';
+import { MoreVertical, User, CreditCard, PauseCircle, TrendingUp, Users, DollarSign, Activity, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
@@ -211,12 +211,55 @@ export default function PlanPage({ params }) {
         return null;
     };
 
+    const handleExportReport = () => {
+        if (!plan) return;
+
+        // Prepare CSV data
+        const headers = ['User Name', 'Email', 'Phone', 'Subscription Type', 'Start Date', 'End Date', 'Status', 'Total Payments', 'Total Amount'];
+        const rows = plan.subscriptions.map(sub => [
+            sub.restaurants_admin.user.name,
+            sub.restaurants_admin.user.email,
+            sub.restaurants_admin.user.phone,
+            sub.type,
+            format(new Date(sub.sub_start), 'yyyy-MM-dd'),
+            format(new Date(sub.sub_end), 'yyyy-MM-dd'),
+            sub.status,
+            sub.payments.length,
+            sub.payments.reduce((sum, p) => sum + p.amount, 0)
+        ]);
+
+        // Create CSV content
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+
+        // Create and trigger download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${plan.name}_report_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header Section */}
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{plan.name} Plan</h1>
+                    <div className="flex justify-between items-center mb-2">
+                        <h1 className="text-3xl font-bold text-gray-900">{plan.name} Plan</h1>
+                        <button
+                            onClick={handleExportReport}
+                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            <Download className="h-4 w-4 mr-2" />
+                            Export Report
+                        </button>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                         <div className="bg-blue-50 p-4 rounded-lg">
                             <h3 className="text-lg font-semibold text-blue-700">Monthly Price</h3>
