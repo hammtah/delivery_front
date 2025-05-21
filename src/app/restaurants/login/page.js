@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from 'lucide-react';
-import { Loader2 } from "lucide-react"
+import { AlertCircle, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
     const router = useRouter();
@@ -20,6 +19,19 @@ export default function LoginPage() {
         email: '',
         password: ''
     });
+
+    useEffect(() => {
+        // Check if user is already authenticated
+        const token = localStorage.getItem('token');
+        if (token) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.role === 'restaurants_admin') {
+                router.push('/restaurants/dashboard');
+            } else {
+                router.push('/admin/dashboard');
+            }
+        }
+    }, [router]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -78,21 +90,23 @@ export default function LoginPage() {
                 } else if (response.status === 429) {
                     throw new Error('Too many login attempts. Please try again later');
                 } else {
-                    throw new Error(data.message || 'Something went wrong. Please try again');
+                    // throw new Error(data.message || 'Something went wrong. Please try again');
+                    throw new Error(data || 'Something went wrong. Please try again');
                 }
             }
 
-            // Store token and user data
-            localStorage.setItem('token', data.token);
+            // Store user data (but not token yet, as we need OTP verification)
             localStorage.setItem('user', JSON.stringify(data.user));
-
-            toast.success('Login successful!');
-            
-            // Redirect based on user role
-            if (data.user.role === 'restaurants_admin') {
+            if(response.ok && data.user.email_verified_at !== null){
+                toast.success('Login successful!');
+            // Store the new token
+            localStorage.setItem('token', data.token);
                 router.push('/restaurants/dashboard');
-            } else {
-                router.push('/admin/dashboard');
+            }else{
+                toast.success('Login successful! Please verify your email.');
+                
+                // Redirect to OTP verification page
+                router.push('/restaurants/verify-otp');
             }
         } catch (error) {
             setError(error.message);

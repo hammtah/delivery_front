@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 
 export default function RestaurantSignup() {
@@ -13,13 +16,28 @@ export default function RestaurantSignup() {
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
+    const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
+        password_confirmation: '',
         phone: '',
         plan_id: searchParams.get('plan') || ''
     });
+
+    useEffect(() => {
+        // Check if user is already authenticated
+        const token = localStorage.getItem('token');
+        if (token) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.role === 'restaurants_admin') {
+                router.push('/restaurants/dashboard');
+            } else {
+                router.push('/admin/dashboard');
+            }
+        }
+    }, [router]);
 
     useEffect(() => {
         const fetchPlanDetails = async () => {
@@ -56,6 +74,7 @@ export default function RestaurantSignup() {
             ...prev,
             [name]: value
         }));
+        if (error) setError(null);
     };
 
     const handleSubmit = async (e) => {
@@ -163,6 +182,19 @@ export default function RestaurantSignup() {
                                 type="password"
                                 required
                                 value={formData.password}
+                                onChange={handleChange}
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="password_confirmation">Confirm Password</Label>
+                            <Input
+                                id="password_confirmation"
+                                name="password_confirmation"
+                                type="password"
+                                required
+                                value={formData.password_confirmation}
                                 onChange={handleChange}
                                 placeholder="••••••••"
                             />

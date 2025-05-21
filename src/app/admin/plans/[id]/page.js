@@ -302,7 +302,7 @@ export default function PlanPage({ params }) {
                                 <p className="text-sm text-gray-500">Drivers Limit</p>
                                 <p className="text-2xl font-semibold text-gray-900">{plan.drivers_limit}</p>
                             </div>
-                            <div>
+        <div>
                                 <p className="text-sm text-gray-500">AI Suggestions</p>
                                 <p className="text-2xl font-semibold text-gray-900">{plan.ai_suggestions ? 'Enabled' : 'Disabled'}</p>
                             </div>
