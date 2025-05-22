@@ -18,6 +18,7 @@ const CreateRestaurantPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [addressDetails, setAddressDetails] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -64,14 +65,16 @@ const CreateRestaurantPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/restaurant', {
+      const response = await fetch('http://127.0.0.1:8000/api/restaurant', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
         },
         body: JSON.stringify(formData)
       });
@@ -79,9 +82,11 @@ const CreateRestaurantPage = () => {
       if (response.ok) {
         router.push('/restaurants-owner/restaurants');
       } else {
+        setIsSubmitting(false);
         console.error('Error creating restaurant');
       }
     } catch (error) {
+        setIsSubmitting(false);
       console.error('Error submitting form:', error);
     }
   };
@@ -120,6 +125,7 @@ const CreateRestaurantPage = () => {
               setFormData={setFormData}
               addressDetails={addressDetails}
               onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
             />
           </div>
         </div>

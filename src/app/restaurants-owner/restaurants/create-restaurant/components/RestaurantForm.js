@@ -3,8 +3,10 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
-const RestaurantForm = ({ formData, setFormData, addressDetails, onSubmit }) => {
+const RestaurantForm = ({ formData, setFormData, addressDetails, onSubmit, isSubmitting }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -35,7 +37,6 @@ const RestaurantForm = ({ formData, setFormData, addressDetails, onSubmit }) => 
           type="url"
           value={formData.image}
           onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-          required
           placeholder="Enter image URL"
         />
       </div>
@@ -52,11 +53,13 @@ const RestaurantForm = ({ formData, setFormData, addressDetails, onSubmit }) => 
         </div>
       )}
 
-      <Button
+      <Button 
         type="submit"
         className="w-full"
         size="lg"
+        disabled={isSubmitting}
       >
+        {isSubmitting ? <Loader2 className="w-4 h-4 mr-2" /> : null}
         Create Restaurant
       </Button>
     </form>
