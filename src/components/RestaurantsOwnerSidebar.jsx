@@ -76,14 +76,15 @@ export default function RestaurantOwnerSidebar() {
 
   // State for user data
   const [user, setUser] = useState({
+    id:null,
     name: '',
     email: '',
   });
 
   // Generate DiceBear avatar URL
   const avatarSeed = user.name || user.email || 'default';
-  let avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(avatarSeed)}`;
-  avatarUrl = `https://avatar.iran.liara.run/public/${user.id}`
+//   let avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(avatarSeed)}`;
+  const avatarUrl = `https://avatar.iran.liara.run/public/${user.id%83}`
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem('user');
@@ -93,6 +94,7 @@ export default function RestaurantOwnerSidebar() {
           setUser({
             name: parsed.name || '',
             email: parsed.email || '',
+            id: parsed.id || null,
           });
         } catch (e) {
           // Fallback to default if parsing fails
@@ -106,13 +108,13 @@ export default function RestaurantOwnerSidebar() {
       {/* Profile Section */}
       <div className="flex items-center gap-3 px-6 py-6 border-b border-gray-100">
         <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-50">
-          {/* <Image src={avatarUrl} alt="User Avatar" width={48} height={48} /> */}
+          <Image src={`https://avatar.iran.liara.run/public/${user.id%83}`} alt="User Avatar" width={48} height={48} />
           <img
-    src={avatarUrl}
-    alt="User Avatar"
-    width={48}
-    height={48}
-    className="w-12 h-12 rounded-full"
+    // src={avatarUrl}
+    // alt="User Avatar"
+    // width={48}
+    // height={48}
+    // className="w-12 h-12 rounded-full"
   />
         </div>
         <div className="flex flex-col">
