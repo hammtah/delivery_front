@@ -52,12 +52,21 @@ const Map = ({ selectedPosition, onLocationSelect }) => {
     <div className="h-[500px] border rounded-lg">
       <MapContainer
         center={[51.505, -0.09]}
-        zoom={13}
+        zoom={15}
+        minZoom={3}
+        maxZoom={19}
+        zoomControl={true}
         style={{ height: '100%', width: '100%' }}
+        attributionControl={true}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          maxZoom={19}
+          maxNativeZoom={19}
+          tileSize={256}
+          zoomOffset={0}
+          detectRetina={true}
         />
         <MapEvents onLocationSelect={onLocationSelect} />
         {selectedPosition && (
