@@ -49,7 +49,7 @@ const MapEvents = ({ onLocationSelect }) => {
 
 const Map = ({ selectedPosition, onLocationSelect }) => {
   return (
-    <div className="h-[500px] border rounded-lg">
+    <div className="h-[700px] border rounded-lg">
       <MapContainer
         center={[51.505, -0.09]}
         zoom={15}
@@ -66,7 +66,7 @@ const Map = ({ selectedPosition, onLocationSelect }) => {
           maxNativeZoom={19}
           tileSize={256}
           zoomOffset={0}
-          detectRetina={true}
+          detectRetina={false}
         />
         <MapEvents onLocationSelect={onLocationSelect} />
         {selectedPosition && (

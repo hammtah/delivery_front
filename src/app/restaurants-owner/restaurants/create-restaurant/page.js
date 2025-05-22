@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import RestaurantForm from './components/RestaurantForm';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // Dynamically import the Map component to avoid SSR issues
 const Map = dynamic(() => import('./components/Map'), {
   ssr: false,
-  loading: () => <div className="h-[500px] border rounded-lg bg-gray-100 flex items-center justify-center">Loading map...</div>
+  loading: () => <div className="h-[700px] border rounded-lg bg-muted flex items-center justify-center">Loading map...</div>
 });
 
 const CreateRestaurantPage = () => {
@@ -86,38 +88,40 @@ const CreateRestaurantPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Create New Restaurant</h1>
+      <h1 className="text-2xl font-bold mb-6">Create New Restaurant</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           <Map 
             selectedPosition={selectedPosition}
             onLocationSelect={handleLocationSelect}
           />
-          <div className="mt-4">
-            <input
+          <div className="mt-4 flex gap-2">
+            <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search location..."
-              className="w-full p-2 border rounded"
+              className="flex-1"
             />
-            <button
+            <Button
               onClick={handleSearch}
-              className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+              variant="secondary"
             >
               Search
-            </button>
+            </Button>
           </div>
         </div>
 
-        <div>
-          <RestaurantForm
-            formData={formData}
-            setFormData={setFormData}
-            addressDetails={addressDetails}
-            onSubmit={handleSubmit}
-          />
+        <div className="lg:col-span-1">
+          <div className="sticky top-4">
+            <RestaurantForm
+              formData={formData}
+              setFormData={setFormData}
+              addressDetails={addressDetails}
+              onSubmit={handleSubmit}
+            />
+          </div>
         </div>
       </div>
     </div>
