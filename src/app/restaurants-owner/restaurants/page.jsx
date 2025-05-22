@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { MapPin } from 'lucide-react';
 import GlowingHeartCircle from '@/components/glowing-heart-circle';
+import Link from 'next/link';
 export default function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,9 +66,9 @@ export default function RestaurantsPage() {
     <div className="p-8 max-w-[1200px] mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800">My Restaurants</h1>
-        <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+        <Link href="/restaurants-owner/restaurants/create-restaurant" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
           Add New Restaurant
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
