@@ -1,10 +1,17 @@
 'use client'
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { MapPin } from 'lucide-react';
+import { MapPin, MoreVertical } from 'lucide-react';
 import GlowingHeartCircle from '@/components/glowing-heart-circle';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 export default function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -113,13 +120,25 @@ if(localStorage.getItem('token')==null){
                 </div>
               </div>
 
-              <div className="mt-4 flex justify-end space-x-2">
-                <button className="text-blue-500 hover:text-blue-600 text-sm font-medium">
-                  Edit
-                </button>
-                <button className="text-red-500 hover:text-red-600 text-sm font-medium">
-                  Delete
-                </button>
+              <div className="mt-4 flex justify-between items-center">
+                <div className="flex space-x-2">
+                  <button className="text-blue-500 hover:text-blue-600 text-sm font-medium">
+                    Edit
+                  </button>
+                  <button className="text-red-500 hover:text-red-600 text-sm font-medium">
+                    Delete
+                  </button>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="focus:outline-none">
+                    <MoreVertical className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                      <Link href={`/restaurants-owner/restaurants/${restaurant.id}/working-hours`}>Working Hours</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
