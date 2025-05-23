@@ -26,9 +26,9 @@ export default function LoginPage() {
         if (token) {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.role === 'restaurants_admin') {
-                router.push('/restaurants/dashboard');
+                router.push('/restaurants-owner/restaurants');
             } else {
-                router.push('/admin/dashboard');
+                router.push('/admin/plans');
             }
         }
     }, [router]);

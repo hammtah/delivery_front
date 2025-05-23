@@ -6,6 +6,10 @@ import dynamic from 'next/dynamic';
 import RestaurantForm from './components/RestaurantForm';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { redirect } from 'next/navigation';
+if(localStorage.getItem('token')==null){
+    redirect('/restaurants/login')
+  }
 
 // Dynamically import the Map component to avoid SSR issues
 const Map = dynamic(() => import('./components/Map'), {

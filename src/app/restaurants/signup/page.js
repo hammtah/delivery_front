@@ -32,9 +32,9 @@ export default function RestaurantSignup() {
         if (token) {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.role === 'restaurants_admin') {
-                router.push('/restaurants/dashboard');
+                router.push('/restaurants-owner/restaurants');
             } else {
-                router.push('/admin/dashboard');
+                router.push('/admin/plans');
             }
         }
     }, [router]);
@@ -48,7 +48,7 @@ export default function RestaurantSignup() {
             }
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/plan/${formData.plan_id}`, {
+                const response = await fetch(`http://127.0.0.1:8000/api/visitor/plan/${formData.plan_id}`, {
                     headers: {
                         'Accept': 'application/json',
                     }

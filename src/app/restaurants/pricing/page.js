@@ -17,7 +17,7 @@ export default function PricingPage() {
     useEffect(() => {
         const fetchPlans = async () => {
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/plan', {
+                const response = await fetch('http://127.0.0.1:8000/api/visitor/plan', {
                     headers: {
                         'Accept': 'application/json',
                     }

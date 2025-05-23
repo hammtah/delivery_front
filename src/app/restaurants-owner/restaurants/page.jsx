@@ -4,11 +4,14 @@ import Image from 'next/image';
 import { MapPin } from 'lucide-react';
 import GlowingHeartCircle from '@/components/glowing-heart-circle';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 export default function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+if(localStorage.getItem('token')==null){
+  redirect('/restaurants/login')
+}
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {

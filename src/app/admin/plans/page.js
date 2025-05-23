@@ -81,7 +81,7 @@ export default function PlansPage() {
   const fetchPlans = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://127.0.0.1:8000/api/admin/plans', {
+      const response = await fetch('http://127.0.0.1:8000/api/plan', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -102,7 +102,7 @@ export default function PlansPage() {
 
   const handleCreatePlan = async (formData) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/admin/plan', {
+      const response = await fetch('http://127.0.0.1:8000/api/plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ export default function PlansPage() {
 
   const handleUpdatePlan = async (formData) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/admin/plan/${selectedPlan.id}`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/plan/${selectedPlan.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ export default function PlansPage() {
 
   const handleDeletePlan = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/admin/plan/${planToDelete.id}`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/plan/${planToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
