@@ -68,7 +68,12 @@ const sidebarItems = [
     title: 'Invoices',
     href: '/restaurants-owner/invoices',
     icon: <Receipt className="w-5 h-5" />
-  }
+  },
+  {
+    title: 'Items',
+    href: '/restaurants-owner/items',
+    icon: <Receipt className="w-5 h-5" />
+  },
 ];
 
 export default function RestaurantOwnerSidebar() {

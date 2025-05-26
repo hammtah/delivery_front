@@ -98,7 +98,7 @@ if(localStorage.getItem('token')==null){
           >
             <div className="relative h-48">
               <img
-                src={restaurant.image || '/placeholder-restaurant.jpg'}
+                src={restaurant.image || '/restaurant_placeholder.png'}
                 alt={restaurant.name}
                 fill
                 className="object-cover h-full w-full"
