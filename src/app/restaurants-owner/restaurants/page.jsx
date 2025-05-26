@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from '@/components/ui/button';
 
 export default function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState([]);
@@ -76,11 +77,19 @@ if(localStorage.getItem('token')==null){
     <div className="p-8 max-w-[1200px] mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800">My Restaurants</h1>
-        <Link href="/restaurants-owner/restaurants/create-restaurant" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
-          Add New Restaurant
+        <Link href="/restaurants-owner/restaurants/create-restaurant" >
+          <Button variant='' >
+            Add New Restaurant
+          </Button>
         </Link>
       </div>
-
+      {restaurants.length === 0 && (
+      <div className='flex flex-col items-center justify-center mt-32'>
+        <Image src='/no_restaurant.png' alt='empty' width={100} height={100} className='w-64 h-32' />
+        <h1 className='text-2xl font-bold text-gray-800'>No restaurants found</h1>
+        <p className='text-gray-600 text-sm mb-4 line-clamp-2'>Please create a restaurant to get started</p>
+      </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {restaurants.map((restaurant) => (
           <div
@@ -88,11 +97,11 @@ if(localStorage.getItem('token')==null){
             className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
           >
             <div className="relative h-48">
-              <Image
+              <img
                 src={restaurant.image || '/placeholder-restaurant.jpg'}
                 alt={restaurant.name}
                 fill
-                className="object-cover"
+                className="object-cover h-full w-full"
               />
             </div>
 
@@ -134,9 +143,11 @@ if(localStorage.getItem('token')==null){
                     <MoreVertical className="h-5 w-5 text-gray-500 hover:text-gray-700" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <Link href={`/restaurants-owner/restaurants/${restaurant.id}/working-hours`}>Working Hours</Link>
+                  <Link href={`/restaurants-owner/restaurants/${restaurant.id}/working-hours`}>
+                    <DropdownMenuItem className='cursor-pointer'>
+                      Working Hours
                     </DropdownMenuItem>
+                  </Link>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

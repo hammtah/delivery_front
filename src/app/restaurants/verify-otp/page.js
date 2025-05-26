@@ -21,10 +21,10 @@ export default function VerifyOTPPage() {
     useEffect(() => {
         // Get email from localStorage
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!user.email) {
-            router.push('/restaurants/login');
-            return;
-        }
+        // if (!user.email) {
+        //     router.push('/restaurants/login');
+        //     return;
+        // }
         setEmail(user.email);
         const token = localStorage.getItem('token');
         if (token) {

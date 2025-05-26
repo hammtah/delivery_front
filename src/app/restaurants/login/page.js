@@ -64,6 +64,7 @@ export default function LoginPage() {
         setError(null);
 
         if (!validateForm()) {
+            toast.error(error);
             return;
         }
 

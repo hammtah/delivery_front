@@ -77,8 +77,40 @@ export default function RestaurantSignup() {
         if (error) setError(null);
     };
 
+    const validateForm = () => {
+        if (!formData.name) {
+            setError('Name is required');
+            return false;
+        }
+        if (!formData.email) {
+            setError('Email is required');
+            return false;
+        }
+        if (!formData.password) {
+            setError('Password is required');
+            return false;
+        }
+        if(!formData.password_confirmation || formData.password_confirmation !== formData.password){
+            setError('Password confirmation does not match');
+            return false;
+        }
+        if (!formData.phone) {
+            setError('Phone number is required');
+            return false;
+        }
+        if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            setError('Please enter a valid email address');
+            return false;
+        }
+        return true;
+    };
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(null);
+        if (!validateForm()) {
+            toast.error(error);
+            return ;
+        }
         setLoading(true);
 
         try {
@@ -100,8 +132,11 @@ export default function RestaurantSignup() {
                 throw new Error(data.message || 'Signup failed');
             }
 
-            toast.success('Account created successfully!');
-            router.push('/restaurants/login');
+            localStorage.setItem('user', JSON.stringify(data.data.user));
+            toast.success('Account created successfully!, Please verify your email');
+
+            // Redirect to OTP verification page
+            router.push('/restaurants/verify-otp');        
         } catch (error) {
             toast.error(error.message || 'Something went wrong');
         } finally {
