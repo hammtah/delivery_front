@@ -12,13 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
-
+import Loading from '@/components/loading';
 export default function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 if(localStorage.getItem('token')==null){
-  redirect('/restaurants/login')
+  redirect('/restaurants-owner/login')
 }
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -58,11 +58,7 @@ if(localStorage.getItem('token')==null){
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <Loading />
   }
 
   if (error) {

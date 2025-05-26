@@ -26,6 +26,16 @@ const sidebarItems = [
     icon: <LayoutDashboard className="w-5 h-5" />
   },
   {
+    title: 'Restaurants Management',
+    href: '/restaurants-owner/restaurants',
+    icon: <Store className="w-5 h-5" />
+  },
+  {
+    title: 'Items',
+    href: '/restaurants-owner/items',
+    icon: <Hamburger className="w-5 h-5" />
+  },
+  {
     title: 'Drivers Management',
     href: '/restaurants-owner/drivers',
     icon: <Truck className="w-5 h-5" />
@@ -39,11 +49,6 @@ const sidebarItems = [
     title: 'Zones Management',
     href: '/restaurants-owner/zones',
     icon: <MapPin className="w-5 h-5" />
-  },
-  {
-    title: 'Restaurants Management',
-    href: '/restaurants-owner/restaurants',
-    icon: <Store className="w-5 h-5" />
   },
   {
     title: 'Working Hours',
@@ -70,11 +75,7 @@ const sidebarItems = [
     href: '/restaurants-owner/invoices',
     icon: <Receipt className="w-5 h-5" />
   },
-  {
-    title: 'Items',
-    href: '/restaurants-owner/items',
-    icon: <Hamburger className="w-5 h-5" />
-  },
+
 ];
 
 export default function RestaurantOwnerSidebar() {

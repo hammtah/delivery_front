@@ -42,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import Loading from "@/components/loading";
 export default function ItemsPage() {
   const [restaurants, setRestaurants] = useState([]);
   const [items, setItems] = useState([]);
@@ -351,9 +351,7 @@ export default function ItemsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center items-center py-4">
-              <p>Loading items...</p>
-            </div>
+            <Loading />
           ) : items.length === 0 ? (
             <p className="text-muted-foreground">No items found</p>
           ) : (

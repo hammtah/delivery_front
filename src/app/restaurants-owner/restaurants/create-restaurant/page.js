@@ -28,6 +28,7 @@ const CreateRestaurantPage = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [loadingCity, setLoadingCity] = useState(true);
   const FOURSQUARE_API_KEY = 'fsq3g2oZGCZauIWMvcAydF/vuiPXkeoQbv+geMOczTdB49A=';
   const [formData, setFormData] = useState({
     name: '',
@@ -213,6 +214,8 @@ const CreateRestaurantPage = () => {
       console.error('Error searching cities:', error);
       setCitySuggestions([]);
       setShowCitySuggestions(false);
+    } finally {
+      setLoadingCity(false);
     }
   };
 
@@ -274,7 +277,7 @@ const CreateRestaurantPage = () => {
                       setCityQuery(e.target.value);
                       handleCitySearch(e.target.value);
                     }}
-                    placeholder="Enter city..."
+                    placeholder={loadingCity ? "Getting your city..." : "Enter city..."}
                     className="w-full"
                   />
                   {showCitySuggestions && citySuggestions.length > 0 && (
@@ -344,4 +347,3 @@ const CreateRestaurantPage = () => {
 };
 
 export default CreateRestaurantPage;
-
