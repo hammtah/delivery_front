@@ -24,6 +24,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Pencil, Trash2, Loader2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function ItemsPage() {
   const [restaurants, setRestaurants] = useState([]);
@@ -38,6 +56,10 @@ export default function ItemsPage() {
   });
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const router = useRouter();
 
@@ -97,6 +119,46 @@ export default function ItemsPage() {
     );
   };
 
+  const handleEdit = (item) => {
+    setEditingItem(item);
+    setFormData({
+      name: item.name,
+      price: item.price.toString(),
+      status: item.status,
+      prep_time: item.prep_time?.toString() || "",
+      image: item.image || "",
+    });
+    setSelectedRestaurants(item.restaurants.map(r => r.id));
+    setOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://127.0.0.1:8000/api/item/${itemToDelete.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete item");
+      }
+
+      toast.success("Item deleted successfully");
+      fetchItems();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      toast.error("Failed to delete item");
+    } finally {
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -105,10 +167,15 @@ export default function ItemsPage() {
       return;
     }
 
+    setSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/api/item", {
-        method: "POST",
+      const url = editingItem 
+        ? `http://127.0.0.1:8000/api/item/${editingItem.id}`
+        : "http://127.0.0.1:8000/api/item";
+      
+      const response = await fetch(url, {
+        method: editingItem ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -122,12 +189,12 @@ export default function ItemsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create item");
+        throw new Error(editingItem ? "Failed to update item" : "Failed to create item");
       }
 
       const data = await response.json();
-      toast.success("Item created successfully");
-      fetchItems(); // Refresh the items list
+      toast.success(editingItem ? "Item updated successfully" : "Item created successfully");
+      fetchItems();
       
       // Reset form and close dialog
       setFormData({
@@ -138,10 +205,13 @@ export default function ItemsPage() {
         image: "",
       });
       setSelectedRestaurants([]);
+      setEditingItem(null);
       setOpen(false);
     } catch (error) {
-      console.error("Error creating item:", error);
-      toast.error("Failed to create item");
+      console.error("Error:", error);
+      toast.error(editingItem ? "Failed to update item" : "Failed to create item");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -149,13 +219,26 @@ export default function ItemsPage() {
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Items Management</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) {
+            setEditingItem(null);
+            setFormData({
+              name: "",
+              price: "",
+              status: "available",
+              prep_time: "",
+              image: "",
+            });
+            setSelectedRestaurants([]);
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>Create Item</Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Create New Item</DialogTitle>
+              <DialogTitle>{editingItem ? "Edit Item" : "Create New Item"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
@@ -182,6 +265,23 @@ export default function ItemsPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, status: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="unavailable">Unavailable</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="prep_time">Preparation Time (minutes)</Label>
                   <Input
                     id="prep_time"
@@ -204,7 +304,7 @@ export default function ItemsPage() {
 
               <div className="space-y-4 ">
                 <Label>Select Restaurants</Label>
-                <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto min-h-[100px]	">
+                <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto min-h-[100px]">
                   {restaurants.map((restaurant) => (
                     <div key={restaurant.id} className="flex items-center space-x-2">
                       <Checkbox
@@ -225,10 +325,20 @@ export default function ItemsPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
+                  disabled={submitting}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Create Item</Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {editingItem ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    editingItem ? "Update Item" : "Create Item"
+                  )}
+                </Button>
               </div>
             </form>
           </DialogContent>
@@ -256,6 +366,7 @@ export default function ItemsPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Prep Time</TableHead>
                   <TableHead>Restaurants</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -263,13 +374,13 @@ export default function ItemsPage() {
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>
-                        <div className="w-10 h-10 rounded-full overflow-hidden">
-                            <img src={item.image} alt={"_"} className="w-full h-full  object-cover" />
-                        </div>
+                      <div className="w-10 h-10 rounded-full overflow-hidden">
+                        <img src={item.image ? item.image : "/item_placeholder.png"} alt={"_"} className="w-full h-full object-cover" />
+                      </div>
                     </TableCell>
                     <TableCell>${item.price.toFixed(2)}</TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant={item.status === "available" ? "default" : "secondary"}
                       >
                         {item.status}
@@ -285,8 +396,29 @@ export default function ItemsPage() {
                             </Badge>
                           ))
                         ) : (
-                            'N/A'
+                          'N/A'
                         )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(item)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setItemToDelete(item);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -296,6 +428,22 @@ export default function ItemsPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the item
+              {itemToDelete && ` "${itemToDelete.name}"`}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
