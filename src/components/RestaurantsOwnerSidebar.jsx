@@ -13,7 +13,8 @@ import {
   FileText,
   Receipt,
   Package,
-  LayoutDashboard
+  LayoutDashboard,
+  Hamburger
 } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
@@ -72,7 +73,7 @@ const sidebarItems = [
   {
     title: 'Items',
     href: '/restaurants-owner/items',
-    icon: <Receipt className="w-5 h-5" />
+    icon: <Hamburger className="w-5 h-5" />
   },
 ];
 
