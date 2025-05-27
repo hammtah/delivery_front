@@ -6,7 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-const RestaurantForm = ({ formData, setFormData, addressDetails, onSubmit, isSubmitting }) => {
+
+const RestaurantForm = ({ formData, setFormData, addressDetails, onSubmit, isSubmitting, isEditing = false }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -34,7 +35,6 @@ const RestaurantForm = ({ formData, setFormData, addressDetails, onSubmit, isSub
       <div className="space-y-2">
         <label className="text-sm font-medium">Image URL</label>
         <Input
-        //   type="url"
           value={formData.image}
           onChange={(e) => {
             setFormData({ ...formData, image: e.target.value });
@@ -42,12 +42,11 @@ const RestaurantForm = ({ formData, setFormData, addressDetails, onSubmit, isSub
           placeholder="Enter image URL"
         />
         {formData.image && (
-        <div className="relative w-full h-72">
-          <img src={formData.image} alt="Restaurant" className="object-cover flex justify-center items-center h-full w-full" />
-        </div>
-      )}
+          <div className="relative w-full h-72">
+            <img src={formData.image} alt="Restaurant" className="object-cover flex justify-center items-center h-full w-full" />
+          </div>
+        )}
       </div>
-
 
       {addressDetails && (
         <div className="border p-4 rounded-lg bg-muted/50">
@@ -63,12 +62,12 @@ const RestaurantForm = ({ formData, setFormData, addressDetails, onSubmit, isSub
 
       <Button 
         type="submit"
-        className="w-full "
+        className="w-full"
         size="lg"
         disabled={isSubmitting}
       >
-        {isSubmitting ? <Loader2 className="w-4 h-4 mr-2" /> : null}
-        Create Restaurant
+        {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+        {isEditing ? 'Update Restaurant' : 'Create Restaurant'}
       </Button>
     </form>
   );

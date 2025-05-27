@@ -88,7 +88,7 @@ const UserLocationMarker = ({ position }) => {
   ) : null;
 };
 
-const Map = ({ selectedPosition, onLocationSelect }) => {
+const Map = ({ selectedPosition, onLocationSelect, doWeNeedUserPosition }) => {
   const [userPosition, setUserPosition] = useState(null);
   const [defaultPosition] = useState([51.505, -0.09]); // Fallback position
   const [isLoading, setIsLoading] = useState(true);
@@ -145,7 +145,7 @@ const Map = ({ selectedPosition, onLocationSelect }) => {
       <div className="h-[700px] border rounded-lg bg-muted flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p>Getting your location...</p>
+          <p>{doWeNeedUserPosition? 'Getting your location...' : 'Getting Restaurant\'s location...'}</p>
         </div>
       </div>
     );
@@ -186,7 +186,7 @@ const Map = ({ selectedPosition, onLocationSelect }) => {
           detectRetina={false}
         />
         <MapEvents onLocationSelect={onLocationSelect} />
-        <UserLocationMarker position={userPosition} />
+        {doWeNeedUserPosition && (<UserLocationMarker position={userPosition} />)}
         <LocationMarker position={selectedPosition} onLocationSelect={onLocationSelect} />
       </MapContainer>
     </div>

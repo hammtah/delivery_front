@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { MapPin, MoreVertical } from 'lucide-react';
+import { MapPin, MoreVertical, Pencil, Trash, CalendarClock } from 'lucide-react';
 import GlowingHeartCircle from '@/components/glowing-heart-circle';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -90,7 +90,7 @@ if(localStorage.getItem('token')==null){
         {restaurants.map((restaurant) => (
           <div
             key={restaurant.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative pb-4"
           >
             <div className="relative h-48">
               <img
@@ -125,25 +125,25 @@ if(localStorage.getItem('token')==null){
                 </div>
               </div>
 
-              <div className="mt-4 flex justify-between items-center">
-                <div className="flex space-x-2">
-                  <button className="text-blue-500 hover:text-blue-600 text-sm font-medium">
-                    Edit
-                  </button>
-                  <button className="text-red-500 hover:text-red-600 text-sm font-medium">
-                    Delete
-                  </button>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="focus:outline-none">
+              <div className="mt-4 flex justify-end items-center absolute bottom-4 right-4 cursor-pointer">
+                <DropdownMenu >
+                  <DropdownMenuTrigger className="focus:outline-none cursor-pointer">
                     <MoreVertical className="h-5 w-5 text-gray-500 hover:text-gray-700" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                  <Link href={`/restaurants-owner/restaurants/${restaurant.id}/working-hours`}>
-                    <DropdownMenuItem className='cursor-pointer'>
-                      Working Hours
+                    <Link href={`/restaurants-owner/restaurants/${restaurant.id}/edit`}>
+                        <DropdownMenuItem className='cursor-pointer '>
+                        <Pencil className='w-4 h-4' /> Edit
+                        </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuItem className='cursor-pointer '>
+                     <Trash className='w-4 h-4' /> Delete
                     </DropdownMenuItem>
-                  </Link>
+                    <Link href={`/restaurants-owner/restaurants/${restaurant.id}/working-hours`}>
+                      <DropdownMenuItem className='cursor-pointer'>
+                        <CalendarClock className='w-4 h-4' /> Working Hours
+                      </DropdownMenuItem>
+                    </Link>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

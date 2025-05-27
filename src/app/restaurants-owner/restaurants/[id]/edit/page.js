@@ -3,21 +3,22 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import RestaurantForm from './components/RestaurantForm';
+import RestaurantForm from '../../create-restaurant/components/RestaurantForm';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { redirect } from 'next/navigation';
+
 if(localStorage.getItem('token')==null){
     redirect('/restaurants/login')
-  }
+}
 
 // Dynamically import the Map component to avoid SSR issues
-const Map = dynamic(() => import('./components/Map'), {
+const Map = dynamic(() => import('../../create-restaurant/components/Map'), {
   ssr: false,
   loading: () => <div className="h-[700px] border rounded-lg bg-muted flex items-center justify-center">Loading map...</div>
 });
 
-const CreateRestaurantPage = () => {
+const EditRestaurantPage = ({ params }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [cityQuery, setCityQuery] = useState('');
@@ -49,41 +50,60 @@ const CreateRestaurantPage = () => {
     }
   });
 
-  // Get user's current location and set city
+  // Fetch restaurant data
   useEffect(() => {
-    const getUserLocation = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            try {
-              // Use Nominatim for reverse geocoding
-              const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-              );
-              const data = await response.json();
-              
-              if (data.address) {
-                const city = data.address.city || data.address.town || data.address.village || data.address.county;
-                if (city) {
-                  setCityQuery(city);
-                  // Also set the initial map position
-                  setSelectedPosition([latitude, longitude]);
-                }
-              }
-            } catch (error) {
-              console.error('Error getting city from coordinates:', error);
-            }
-          },
-          (error) => {
-            console.error('Error getting location:', error);
+    const fetchRestaurant = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://127.0.0.1:8000/api/restaurant/${params.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
           }
-        );
+        });
+
+        if (response.ok) {
+            setLoadingCity(false);
+          const data = await response.json();
+          const restaurant = data.data;
+          // Set form data
+          setFormData({
+            name: restaurant.name,
+            description: restaurant.description,
+            image: restaurant.image || '',
+            address: {
+              street: restaurant.address.street,
+              city: restaurant.address.city,
+              neighborhood: '',
+              street_code: restaurant.address.street_code,
+              postal_code: restaurant.address.postal_code,
+              province: restaurant.address.province,
+              position: {
+                name: restaurant.address.geoPosition.name,
+                longitude: restaurant.address.geoPosition.longitude,
+                latitude: restaurant.address.geoPosition.latitude
+              }
+            }
+          });
+
+          // Set city query
+          setCityQuery(restaurant.address.city);
+          //handle location
+        //   console.log(formData)
+          handleLocationSelect([restaurant.address.geoPosition.latitude, restaurant.address.geoPosition.longitude], restaurant.address);
+
+        } else {
+          console.error('Error fetching restaurant');
+          router.push('/restaurants-owner/restaurants');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        router.push('/restaurants-owner/restaurants');
       }
     };
 
-    getUserLocation();
-  }, []);
+    fetchRestaurant();
+  }, [params.id, router]);
 
   const handleLocationSelect = (position, address) => {
     setSelectedPosition(position);
@@ -129,7 +149,6 @@ const CreateRestaurantPage = () => {
   };
 
   const handleSuggestionClick = async (suggestion) => {
-    console.log(suggestion);
     const position = [suggestion.geocodes.main.latitude, suggestion.geocodes.main.longitude];
     const address = {
       street: suggestion.location.address || '',
@@ -145,48 +164,17 @@ const CreateRestaurantPage = () => {
       }
     };
 
-    try {
-      // Fetch detailed restaurant information
-    //   const detailsResponse = await fetch(
-    //     `https://api.foursquare.com/v3/places/${suggestion.fsq_id}`,
-    //     {
-    //       headers: {
-    //         'Authorization': FOURSQUARE_API_KEY,
-    //         'Accept': 'application/json'
-    //       }
-    //     }
-    //   );
-      
-    //   const detailsData = await detailsResponse.json();
-    //   console.log('Restaurant details:', detailsData);
-
-    //   // Get the first photo URL if available
-    //   let imageUrl = '';
-    //   if (detailsData.photos && detailsData.photos.length > 0) {
-    //     const photo = detailsData.photos[0];
-    //     imageUrl = `${photo.prefix}original${photo.suffix}`;
-    //   }
     let imageUrl = '';
-      // Update form data with restaurant details
-      setFormData(prev => ({
-        ...prev,
-        name: suggestion.name,
-        image: imageUrl,
-        address
-      }));
-      
-      handleLocationSelect(position, address);
-      setSearchQuery(suggestion.name);
-      setShowSuggestions(false);
-    } catch (error) {
-      console.error('Error fetching restaurant details:', error);
-      // Still update the form with basic information even if details fetch fails
-      setFormData(prev => ({
-        ...prev,
-        name: suggestion.name,
-        address
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      name: suggestion.name,
+      image: imageUrl,
+      address
+    }));
+    
+    handleLocationSelect(position, address);
+    setSearchQuery(suggestion.name);
+    setShowSuggestions(false);
   };
 
   const handleCitySearch = async (query) => {
@@ -203,7 +191,6 @@ const CreateRestaurantPage = () => {
       const data = await response.json();
       
       if (data && data.length > 0) {
-        console.log(data);
         setCitySuggestions(data);
         setShowCitySuggestions(true);
       } else {
@@ -215,14 +202,13 @@ const CreateRestaurantPage = () => {
       setCitySuggestions([]);
       setShowCitySuggestions(false);
     } finally {
-      setLoadingCity(false);
+    //   setLoadingCity(false);
     }
   };
 
   const handleCitySelect = (city) => {
-    setCityQuery(city.display_name.split(',')[0]); // Get just the city name
+    setCityQuery(city.display_name.split(',')[0]);
     setShowCitySuggestions(false);
-    // If there's a restaurant search query, trigger the restaurant search
     if (searchQuery.trim()) {
       handleSearch();
     }
@@ -232,10 +218,11 @@ const CreateRestaurantPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    //update
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/restaurant', {
-        method: 'POST',
+      const response = await fetch(`http://127.0.0.1:8000/api/restaurant/${params.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -248,24 +235,24 @@ const CreateRestaurantPage = () => {
         router.push('/restaurants-owner/restaurants');
       } else {
         setIsSubmitting(false);
-        console.error('Error creating restaurant');
+        console.error('Error updating restaurant');
       }
     } catch (error) {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
       console.error('Error submitting form:', error);
     }
   };
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Create New Restaurant</h1>
+      <h1 className="text-2xl font-bold mb-6">Edit Restaurant</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Map 
             selectedPosition={selectedPosition}
             onLocationSelect={handleLocationSelect}
-            doWeNeedUserPosition={true}
+            doWeNeedUserPosition={false}
           />
           <div className="mt-4 relative">
             <div className="flex flex-col gap-2">
@@ -278,7 +265,7 @@ const CreateRestaurantPage = () => {
                       setCityQuery(e.target.value);
                       handleCitySearch(e.target.value);
                     }}
-                    placeholder={loadingCity ? "Getting your city..." : "Enter city..."}
+                    placeholder={loadingCity ? "Getting Restaurant's city..." : "Enter city..."}
                     className="w-full"
                   />
                   {showCitySuggestions && citySuggestions.length > 0 && (
@@ -339,6 +326,7 @@ const CreateRestaurantPage = () => {
               addressDetails={addressDetails}
               onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
+              isEditing={true}
             />
           </div>
         </div>
@@ -347,4 +335,4 @@ const CreateRestaurantPage = () => {
   );
 };
 
-export default CreateRestaurantPage;
+export default EditRestaurantPage; 
