@@ -25,8 +25,10 @@ const userIcon = new Icon({
 const MapEvents = ({ onLocationSelect }) => {
   useMapEvents({
     click: async (e) => {
+        //get lat and long from click
       const { lat, lng } = e.latlng;
       
+      //get the address details (city, country...) from the lat and long
       try {
         const response = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
