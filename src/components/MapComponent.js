@@ -7,6 +7,8 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import { Input } from "@/components/ui/input";
 import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 const MapComponent = ({ addressForm, setAddressForm, controls={
     polygon: true,
@@ -28,8 +30,8 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
   const mapRefInstance = useRef(null);
   const ZOOM_LEVEL = 18; // Default zoom level for the map
 
-  const handleCitySearch = async (query) => {
-    if (!query.trim()) {
+  const handleCitySearch = async () => {
+    if (!cityQuery.trim()) {
       setCitySuggestions([]);
       setShowCitySuggestions(false);
       return;
@@ -40,22 +42,20 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&type=city&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityQuery)}&type=city&limit=5`
       );
       const data = await response.json();
       
       if (data && data.length > 0) {
         setCitySuggestions(data);
-        setIsLoadingCities(false);
       } else {
         setCitySuggestions([]);
-        setIsLoadingCities(false);
       }
     } catch (error) {
       console.error('Error searching cities:', error);
       setCitySuggestions([]);
     } finally {
-    //   setIsLoadingCities(false);
+      setIsLoadingCities(false);
     }
   };
 
@@ -81,19 +81,16 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
       );
       
       const data = await response.json();
-      console.log(data)
       if (data.results && data.results.length > 0) {
         setSuggestions(data.results);
-        setIsLoadingPlaces(false);
       } else {
         setSuggestions([]);
-        setIsLoadingPlaces(false);
       }
     } catch (error) {
       console.error('Error searching places:', error);
       setSuggestions([]);
     } finally {
-    //   setIsLoadingPlaces(false);
+      setIsLoadingPlaces(false);
     }
   };
 
@@ -246,20 +243,38 @@ const addCircleMarker = (lat, lng, popupText = '') => {
     <>
       <div id="map" ref={mapRef} style={{ height: '100%', width: '100%' }} />
       <div className="flex flex-col gap-2 p-4">
-        <div className="relative">
+        <div className="relative flex items-center">
           <Input
             type="text"
             value={cityQuery}
             onChange={(e) => {
               const value = e.target.value;
               setCityQuery(value);
-              handleCitySearch(value);
+            }}
+            onKeyPress={(e)=>{
+                if(e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCitySearch();
+                }
             }}
             placeholder="Enter city..."
-            className="w-2/3"
+            className="w-1/3"
           />
+          <Button
+            onClick={handleCitySearch}
+            className="ml-2"
+            size="icon"
+            variant="ghost"
+            disabled={isLoadingCities}
+          >
+            {isLoadingCities ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
+          </Button>
           {showCitySuggestions && (
-            <div className="absolute z-20 w-2/3 bg-white shadow-lg rounded-md mt-1">
+            <div className="absolute z-20 w-2/3 bg-white shadow-lg rounded-md mt-1 top-full">
               {isLoadingCities ? (
                 <div className="p-4 text-center text-gray-500">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
@@ -284,7 +299,7 @@ const addCircleMarker = (lat, lng, popupText = '') => {
             </div>
           )}
         </div>
-        <div className="relative">
+        <div className="relative ">
           <Input
             type="text"
             value={searchQuery}
@@ -295,8 +310,9 @@ const addCircleMarker = (lat, lng, popupText = '') => {
               }
             }}
             placeholder="Search places..."
-            className="w-2/3"
+            className="w-1/3"
           />
+
           {showSuggestions && (
             <div className="absolute z-10 w-2/3 bg-white shadow-lg rounded-md mt-1">
               {isLoadingPlaces ? (
