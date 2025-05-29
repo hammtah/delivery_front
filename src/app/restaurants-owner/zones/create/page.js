@@ -25,8 +25,8 @@ export default function CreateZonePage() {
         status: 'active',
         type: 'circle',
         user_fees: '',
-        partial_commission: '',
-        full_commission: '',
+        partial_commission_per_km: '',
+        full_commission_per_km: '',
         radius: '',
         points: [],
         center_address: {
@@ -61,8 +61,8 @@ export default function CreateZonePage() {
             status: prev.status,
             type: newType === 'radius' ? 'circle' : 'polygon',
             user_fees: prev.user_fees,
-            partial_commission: prev.partial_commission,
-            full_commission: prev.full_commission,
+            partial_commission_per_km: prev.partial_commission_per_km,
+            full_commission_per_km: prev.full_commission_per_km,
             radius: '',
             points: [],
             center_address: {
@@ -98,8 +98,8 @@ export default function CreateZonePage() {
                 status: 'active',
                 type: 'circle',
                 user_fees: '',
-                partial_commission: '',
-                full_commission: '',
+                partial_commission_per_km: '',
+                full_commission_per_km: '',
                 radius: '',
                 points: [],
                 center_address: {
@@ -119,8 +119,8 @@ export default function CreateZonePage() {
     const isFormValid = () => {
         const commonFieldsValid = formData.name && 
             formData.user_fees && 
-            formData.partial_commission && 
-            formData.full_commission;
+            formData.partial_commission_per_km && 
+            formData.full_commission_per_km;
 
         if (zoneType === 'radius') {
             return commonFieldsValid && formData.center_address.position.latitude && formData.center_address.position.longitude && formData.radius;
@@ -224,26 +224,26 @@ export default function CreateZonePage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="partial_commission">Partial Commission</Label>
+                                <Label htmlFor="partial_commission_per_km">Partial Commission Per Km</Label>
                                 <Input
-                                    id="partial_commission"
-                                    name="partial_commission"
+                                    id="partial_commission_per_km"
+                                    name="partial_commission_per_km"
                                     type="number"
                                     step="0.01"
-                                    value={formData.partial_commission}
+                                    value={formData.partial_commission_per_km}
                                     onChange={handleInputChange}
                                     required
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="full_commission">Full Commission</Label>
+                                <Label htmlFor="full_commission_per_km">Full Commission_per_km</Label>
                                 <Input
-                                    id="full_commission"
-                                    name="full_commission"
+                                    id="full_commission_per_km"
+                                    name="full_commission_per_km"
                                     type="number"
                                     step="0.01"
-                                    value={formData.full_commission}
+                                    value={formData.full_commission_per_km}
                                     onChange={handleInputChange}
                                     required
                                 />

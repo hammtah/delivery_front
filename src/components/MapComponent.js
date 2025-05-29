@@ -17,7 +17,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     marker: true,
     circle: true,
     circlemarker: false
-  }, onCircleCreated, onPolygonCreated }) => {
+  }, onCircleCreated, onPolygonCreated, initialZoneData }) => {
   const mapRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [cityQuery, setCityQuery] = useState('');
@@ -281,10 +281,41 @@ const addCircleMarker = (lat, lng, popupText = '') => {
       drawnItems.clearLayers();
     });
 
+    // Display initial zone data if provided
+    if (initialZoneData) {
+      if (initialZoneData.type === 'circle') {
+        const center = initialZoneData.center_address.geoPosition;
+        const circle = L.circle([center.latitude, center.longitude], {
+          radius: initialZoneData.radius,
+          color: 'blue',
+          fillColor: '#30f',
+          fillOpacity: 0.2
+        }).addTo(drawnItems);
+        
+        // Center the map on the circle
+        map.setView([center.latitude, center.longitude], ZOOM_LEVEL);
+      } else if (initialZoneData.type === 'polygon') {
+        const coordinates = initialZoneData.points.map(point => [
+          point.geoPosition.latitude,
+          point.geoPosition.longitude
+        ]);
+        
+        const polygon = L.polygon(coordinates, {
+          color: 'blue',
+          fillColor: '#30f',
+          fillOpacity: 0.2
+        }).addTo(drawnItems);
+        
+        // Center the map on the polygon
+        const bounds = polygon.getBounds();
+        map.fitBounds(bounds);
+      }
+    }
+
     return () => {
       map.remove();
     };
-  }, []); // Initial map setup
+  }, [initialZoneData]); // Add initialZoneData to dependencies
 
   // Add new useEffect to handle control changes
   useEffect(() => {
