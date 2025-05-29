@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import L, { circle } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
@@ -30,6 +30,61 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
   const mapRefInstance = useRef(null);
   const drawControlRef = useRef(null);
   const ZOOM_LEVEL = 18; // Default zoom level for the map
+  const drawnItemsRef = useRef(null);
+  const circleMarkerRef = useRef(null);
+    // Add this function to your component
+const addCircleMarker = (lat, lng, popupText = '') => {
+    if (mapRefInstance.current) {
+        if(circleMarkerRef.current == null) {
+            circleMarkerRef.current = L.circleMarker([lat, lng], {
+                radius: 8,
+                color: 'blue',
+                fillColor: '#30f',
+                fillOpacity: 0.7
+            }).addTo(mapRefInstance.current);
+        }
+        else{
+            circleMarkerRef.current.setLatLng([lat, lng]);
+        }
+      if (popupText) {
+        circleMarkerRef.current.bindPopup(popupText);
+      }
+      return circleMarkerRef.current;
+    }
+  };
+
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Use Nominatim for reverse geocoding
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            const data = await response.json();
+            if (data.address) {
+              const city = data.address.city || data.address.town || data.address.village || data.address.county;
+              if (city) {
+                setCityQuery(city);
+                addCircleMarker(latitude, longitude, city); // Add circle marker at user's location
+                mapRefInstance.current.setView([latitude, longitude], ZOOM_LEVEL);
+                // Also set the initial map position
+              //   setSelectedPosition([latitude, longitude]);
+              }
+            }
+          } catch (error) {
+            console.error('Error getting city from coordinates:', error);
+          }
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
+    }
+  };
+  
 
   const handleCitySearch = async () => {
     if (!cityQuery.trim()) {
@@ -168,6 +223,8 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
 
     const map = L.map(mapRef.current).setView([40.7128, -74.0060], ZOOM_LEVEL);
     mapRefInstance.current = map;
+    // Get user location and set initial map view
+    getUserLocation();
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '© OpenStreetMap contributors'
@@ -175,6 +232,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
 
     const drawnItems = new L.FeatureGroup();
     map.addLayer(drawnItems);
+    drawnItemsRef.current = drawnItems;
 
     // Initialize the draw control and pass it the FeatureGroup of editable layers
     const drawControl = new L.Control.Draw({
@@ -187,6 +245,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     map.addControl(drawControl);
     drawControlRef.current = drawControl;
 
+    // Handle created shapes
     map.on(L.Draw.Event.CREATED, function (event) {
       const layer = event.layer;
       if (drawnItems.getLayers().length >= 1) {
@@ -200,26 +259,23 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
       if (event.layerType === "polygon") {
         polygonHandler(layer);
       }
-      if (event.layerType === "marker") {
-        markerHandler(layer);
-      }
     });
 
+    // Handle edited shapes
     map.on(L.Draw.Event.EDITED, function (event) {
       const layers = event.layers;
       layers.eachLayer(function (layer) {
-        if (event.layerType === "circle") {
+        if (layer instanceof L.Circle) {
+          // For circles, we need to handle both center and radius changes
           circleHandler(layer);
         }
-        if (event.layerType === "polygon") {
+        else if (layer instanceof L.Polygon) {
           polygonHandler(layer);
-        }
-        if (event.layerType === "marker") {
-          markerHandler(layer);
         }
       });
     });
 
+    // Handle deleted shapes
     map.on(L.Draw.Event.DELETED, function (e) {
       drawnItems.clearLayers();
     });
@@ -240,7 +296,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     const newDrawControl = new L.Control.Draw({
       draw: controls,
       edit: {
-        featureGroup: new L.FeatureGroup(),
+        featureGroup: drawnItemsRef.current,
         remove: true
       }
     });
@@ -251,22 +307,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
 
   }, [controls]); // Watch for changes in controls prop
 
-  // Add this function to your component
-const addCircleMarker = (lat, lng, popupText = '') => {
-    if (mapRefInstance.current) {
-    //   const marker = L.CircleMarker([lat, lng]).addTo(mapRefInstance.current);
-        const marker = L.circleMarker([lat, lng], {
-            radius: 8,
-            color: 'blue',
-            fillColor: '#30f',
-            fillOpacity: 0.7
-        }).addTo(mapRefInstance.current);
-      if (popupText) {
-        marker.bindPopup(popupText);
-      }
-      return marker;
-    }
-  };
+
 
   return (
     <>
