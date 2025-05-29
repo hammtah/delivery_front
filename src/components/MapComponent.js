@@ -115,8 +115,9 @@ const addCircleMarker = (lat, lng, popupText = '') => {
     }
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim() || !cityQuery.trim()) {
+  const handleSearch = async (uSearchQuery) => {
+    // if (!searchQuery.trim() || !cityQuery.trim()) {
+    if ( !cityQuery.trim()) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -127,7 +128,7 @@ const addCircleMarker = (lat, lng, popupText = '') => {
 
     try {
       const response = await fetch(
-        `https://api.foursquare.com/v3/places/search?query=${encodeURIComponent(searchQuery)}&limit=50&near=${encodeURIComponent(cityQuery)}`,
+        `https://api.foursquare.com/v3/places/search?query=${encodeURIComponent(uSearchQuery)}&limit=50&near=${encodeURIComponent(cityQuery)}`,
         {
           headers: {
             'Authorization': process.env.NEXT_PUBLIC_FOURSQUARE_API_KEY,
@@ -320,7 +321,7 @@ const addCircleMarker = (lat, lng, popupText = '') => {
             onChange={(e) => {
               const value = e.target.value;
               setCityQuery(value);
-            }}
+                        }}
             onKeyPress={(e)=>{
                 if(e.key === 'Enter') {
                     e.preventDefault();
@@ -375,8 +376,10 @@ const addCircleMarker = (lat, lng, popupText = '') => {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
+              handleSearch(e.target.value);
+              console.log(e.target.value)
               if (cityQuery.trim()) {
-                handleSearch();
+                // handleSearch();
               }
             }}
             placeholder="Search places..."
