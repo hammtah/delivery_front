@@ -17,7 +17,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     marker: true,
     circle: true,
     circlemarker: false
-  } }) => {
+  }, onCircleCreated, onPolygonCreated }) => {
   const mapRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [cityQuery, setCityQuery] = useState('');
@@ -28,6 +28,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const mapRefInstance = useRef(null);
+  const drawControlRef = useRef(null);
   const ZOOM_LEVEL = 18; // Default zoom level for the map
 
   const handleCitySearch = async () => {
@@ -131,6 +132,9 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     const radius = layer.getRadius();
     console.log("Circle center:", center);
     console.log("Circle radius (meters):", radius);
+    if (onCircleCreated) {
+      onCircleCreated(center, radius);
+    }
   };
 
   const polygonHandler = (layer) => {
@@ -140,6 +144,9 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
       lng: latlng.lng
     }));
     console.log("Polygon Coordinates:", coordinates);
+    if (onPolygonCreated) {
+      onPolygonCreated(coordinates);
+    }
   };
 
   const markerHandler = (layer) => {
@@ -149,7 +156,6 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
   };
 
   useEffect(() => {
-    
     if (!mapRef.current) return;
 
     // Fix Leaflet default icon issue
@@ -161,7 +167,8 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     });
 
     const map = L.map(mapRef.current).setView([40.7128, -74.0060], ZOOM_LEVEL);
-    mapRefInstance.current = map; // Store the map instance for later use
+    mapRefInstance.current = map;
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
@@ -178,6 +185,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
       }
     });
     map.addControl(drawControl);
+    drawControlRef.current = drawControl;
 
     map.on(L.Draw.Event.CREATED, function (event) {
       const layer = event.layer;
@@ -219,8 +227,29 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     return () => {
       map.remove();
     };
-  }, []);
+  }, []); // Initial map setup
 
+  // Add new useEffect to handle control changes
+  useEffect(() => {
+    if (!mapRefInstance.current || !drawControlRef.current) return;
+
+    // Remove existing draw control
+    mapRefInstance.current.removeControl(drawControlRef.current);
+
+    // Create new draw control with updated options
+    const newDrawControl = new L.Control.Draw({
+      draw: controls,
+      edit: {
+        featureGroup: new L.FeatureGroup(),
+        remove: true
+      }
+    });
+
+    // Add new draw control
+    mapRefInstance.current.addControl(newDrawControl);
+    drawControlRef.current = newDrawControl;
+
+  }, [controls]); // Watch for changes in controls prop
 
   // Add this function to your component
 const addCircleMarker = (lat, lng, popupText = '') => {

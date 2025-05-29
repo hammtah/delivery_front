@@ -47,7 +47,7 @@ const sidebarItems = [
   },
   {
     title: 'Zones Management',
-    href: '/restaurants-owner/zones',
+    href: '/restaurants-owner/zones/create',
     icon: <MapPin className="w-5 h-5" />
   },
   {
@@ -62,7 +62,7 @@ const sidebarItems = [
   },
   {
     title: 'Clients Management',
-    href: '/restaurants-owner/clients',
+    href: '/restaurants-owner/client/create',
     icon: <Users2 className="w-5 h-5" />
   },
   {

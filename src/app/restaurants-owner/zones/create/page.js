@@ -1,152 +1,250 @@
 'use client'
-import React from 'react'
-
-import { useState, useEffect } from 'react';
+import React, { useEffect } from 'react'
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import RestaurantForm from './components/RestaurantForm';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { redirect } from 'next/navigation';
+import MapComponent from '@/components/MapComponent';
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { map } from 'leaflet';
+
 if(localStorage.getItem('token')==null){
     redirect('/restaurants/login')
-  }
+}
 
-// Dynamically import the Map component to avoid SSR issues
-const Map = dynamic(() => import('./components/zone-map'), {
-  ssr: false,
-  loading: () => <div className="h-[700px] border rounded-lg bg-muted flex items-center justify-center">Loading map...</div>
-});
-
-
-const handleLocationSelect = (position, address) => {
-    setSelectedPosition(position);
-    setAddressDetails(address);
-    setFormData(prev => ({
-      ...prev,
-      address
-    }));
-  };
-
-
-export default function ZoneCreatePage() {
+export default function CreateZonePage() {
     const router = useRouter();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [cityQuery, setCityQuery] = useState('');
-    const [selectedPosition, setSelectedPosition] = useState(null);
-    const [addressDetails, setAddressDetails] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [suggestions, setSuggestions] = useState([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const [citySuggestions, setCitySuggestions] = useState([]);
-    const [showCitySuggestions, setShowCitySuggestions] = useState(false);
-    const [loadingCity, setLoadingCity] = useState(true);
-    const FOURSQUARE_API_KEY = 'fsq3g2oZGCZauIWMvcAydF/vuiPXkeoQbv+geMOczTdB49A=';
+    const [zoneType, setZoneType] = useState('radius'); // 'radius' or 'polygon'
     const [formData, setFormData] = useState({
-        name: "",
-        status: "active",
-        radius: "",
-        type: "circle",
-        user_fees: "",
-        partial_commission: "",
-        full_commission: "",
-        points: [],
-        center_address: {
-            street: "",
-            city: "",
-            neighberhood: "",
-            street_code: "",
-            postal_code: "",
-            province: ""
+        name: '',
+        description: '',
+        type: 'radius',
+        // For radius zone
+        center: {
+            address: '',
+            latitude: '',
+            longitude: ''
+        },
+        radius: '', // in meters
+        // For polygon zone
+        coordinates: [] // Array of {lat, lng} points
+    });
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        
+        if (name.startsWith('center.')) {
+            const field = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                center: {
+                    ...prev.center,
+                    [field]: value
+                }
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
         }
-    })
+    };
+
+    const handleZoneTypeChange = (newType) => {
+        setZoneType(newType);
+        // Reset zone-specific data while keeping common fields
+        setFormData(prev => ({
+            name: prev.name,
+            description: prev.description,
+            type: newType,
+            center: {
+                address: '',
+                latitude: '',
+                longitude: ''
+            },
+            radius: '',
+            coordinates: []
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/zones', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    type: zoneType
+                }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to create zone');
+            }
+            
+            toast.success(`${zoneType === 'radius' ? 'Radius' : 'Polygon'} zone created successfully!`);
+            router.push('/restaurants-owner/zones');
+        } catch (error) {
+            toast.error('Failed to create zone: ' + error.message);
+        }
+    };
+
+    const isFormValid = () => {
+        if (zoneType === 'radius') {
+            return formData.name && formData.center.latitude && formData.center.longitude && formData.radius;
+        } else {
+            return formData.name && formData.coordinates.length >= 3;
+        }
+    };
+
+    useEffect(()=>{
+        console.log('fffffff: ', formData)
+    }, [formData])
+
     return (
-        <div className="container mx-auto p-4">
-          <h1 className="text-2xl font-bold mb-6">Create New Restaurant</h1>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Map 
-                selectedPosition={selectedPosition}
-                onLocationSelect={handleLocationSelect}
-                doWeNeedUserPosition={true}
-              />
-              <div className="mt-4 relative">
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-2">
-                    <div className="w-1/3 relative">
-                      <Input
-                        type="text"
-                        value={cityQuery}
-                        onChange={(e) => {
-                          setCityQuery(e.target.value);
-                          handleCitySearch(e.target.value);
-                        }}
-                        placeholder={loadingCity ? "Getting your city..." : "Enter city..."}
-                        className="w-full"
-                      />
-                      {showCitySuggestions && citySuggestions.length > 0 && (
-                        <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                          {citySuggestions.map((city, index) => (
-                            <div
-                              key={index}
-                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                              onClick={() => handleCitySelect(city)}
-                            >
-                              <div className="font-medium">{city.display_name.split(',')[0]}</div>
-                              <div className="text-sm text-gray-600">
-                                {city.display_name.split(',').slice(1).join(',').trim()}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <Input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        if (cityQuery.trim()) {
-                          handleSearch();
-                        }
-                      }}
-                      placeholder="Search restaurant..."
-                      className="w-2/3"
-                    />
-                  </div>
-                  {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                      {suggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                        >
-                          <div className="font-medium">{suggestion.name}</div>
-                          <div className="text-sm text-gray-600">
-                            {suggestion.location.address}, {suggestion.location.locality}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-    
-            <div className="lg:col-span-1">
-              <div className="sticky top-4">
-                <RestaurantForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  addressDetails={addressDetails}
-                  onSubmit={handleSubmit}
-                  isSubmitting={isSubmitting}
+        <main className='flex flex-row gap-4 w-[88%] justify-center p-6 ml-auto h-[80vh]'>
+            <div className="w-[80%] h-full">
+                <MapComponent 
+                    controls={{
+                        polygon: zoneType === 'polygon',
+                        polyline: false,
+                        rectangle: false,
+                        marker: false,
+                        circle: zoneType === 'radius',
+                        circlemarker: false
+                    }}
+                    onCircleCreated={(center, radius) => {
+                        // if (zoneType === 'radius') {
+                            setFormData(prev => ({
+                                ...prev,
+                                center: {
+                                    ...prev.center,
+                                    latitude: center.lat,
+                                    longitude: center.lng
+                                },
+                                radius: radius
+                            }));
+                        // }
+                    }}
+                    onPolygonCreated={(coordinates) => {
+                        console.log(zoneType, coordinates)
+                        console.log(coordinates)
+                        // if (zoneType === 'polygon') {
+                            setFormData(prev => ({
+                                ...prev,
+                                coordinates: coordinates
+                            }));
+                        // }
+                    }}
                 />
-              </div>
             </div>
-          </div>
-        </div>
-      );
+            <Card className="w-[20%]">
+                <CardHeader>
+                    <CardTitle>Create New Zone</CardTitle>
+                    <CardDescription>Choose the type of zone and draw it on the map.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Tabs defaultValue="radius" className="w-full" onValueChange={handleZoneTypeChange}>
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="radius">Radius Zone</TabsTrigger>
+                            <TabsTrigger value="polygon">Polygon Zone</TabsTrigger>
+                        </TabsList>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Zone Name</Label>
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="description">Description</Label>
+                                <Input
+                                    id="description"
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+
+                            {zoneType === 'radius' ? (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label>Center Point</Label>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="latitude">Latitude</Label>
+                                                <Input
+                                                    id="latitude"
+                                                    name="center.latitude"
+                                                    value={formData.center.latitude}
+                                                    onChange={handleInputChange}
+                                                    readOnly
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="longitude">Longitude</Label>
+                                                <Input
+                                                    id="longitude"
+                                                    name="center.longitude"
+                                                    value={formData.center.longitude}
+                                                    onChange={handleInputChange}
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="radius">Radius (meters)</Label>
+                                        <Input
+                                            id="radius"
+                                            name="radius"
+                                            type="number"
+                                            value={formData.radius}
+                                            onChange={handleInputChange}
+                                            readOnly
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="space-y-2">
+                                    <Label>Polygon Points</Label>
+                                    <div className="text-sm text-muted-foreground">
+                                        {formData.coordinates.length > 0 
+                                            ? `${formData.coordinates.length} points defined` 
+                                            : 'Draw a polygon on the map'}
+                                    </div>
+                                </div>
+                            )}
+
+                            <Button 
+                                type="submit" 
+                                className="w-full"
+                                disabled={!isFormValid()}
+                            >
+                                Create Zone
+                            </Button>
+                        </form>
+                    </Tabs>
+                </CardContent>
+            </Card>
+        </main>
+    );
+
+    
 }
