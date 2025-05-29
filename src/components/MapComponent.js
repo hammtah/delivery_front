@@ -255,7 +255,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
 const addCircleMarker = (lat, lng, popupText = '') => {
     if (mapRefInstance.current) {
     //   const marker = L.CircleMarker([lat, lng]).addTo(mapRefInstance.current);
-        L.circleMarker([lat, lng], {
+        const marker = L.circleMarker([lat, lng], {
             radius: 8,
             color: 'blue',
             fillColor: '#30f',

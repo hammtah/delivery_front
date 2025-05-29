@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-lea
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
 import { useEffect, useState } from 'react';
+import L from 'leaflet';
 
 // Fix for default marker icon
 const icon = new Icon({
@@ -81,13 +82,24 @@ const UserLocationMarker = ({ position }) => {
     }
   }, [position, map]);
 
-  return position ? (
-    <Marker 
-      position={position} 
-      icon={userIcon}
-      title="Your current location"
-    />
-  ) : null;
+  const marker = L.circleMarker(position, {
+    radius: 8,
+    color: 'blue',
+    fillColor: '#30f',
+    fillOpacity: 0.3
+    }).addTo(map);
+    marker.bindPopup("Your current location");
+
+    return <></>;
+// if (popupText) {
+// marker.bindPopup(popupText);
+//   return position ? (
+//     <Marker 
+//       position={position} 
+//       icon={userIcon}
+//       title="Your current location"
+//     />
+//   ) : null;
 };
 
 const Map = ({ selectedPosition, onLocationSelect, doWeNeedUserPosition }) => {

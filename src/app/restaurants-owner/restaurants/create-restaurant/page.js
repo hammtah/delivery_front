@@ -62,13 +62,12 @@ const CreateRestaurantPage = () => {
                 `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
               );
               const data = await response.json();
-              
               if (data.address) {
                 const city = data.address.city || data.address.town || data.address.village || data.address.county;
                 if (city) {
                   setCityQuery(city);
                   // Also set the initial map position
-                  setSelectedPosition([latitude, longitude]);
+                //   setSelectedPosition([latitude, longitude]);
                 }
               }
             } catch (error) {
