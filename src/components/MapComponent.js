@@ -5,9 +5,97 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
+import { Input } from "@/components/ui/input";
+import { useState } from 'react';
 
-const MapComponent = ({ addressForm, setAddressForm }) => {
+const MapComponent = ({ addressForm, setAddressForm, controls={
+    polygon: true,
+    polyline: false,
+    rectangle: false,
+    marker: true,
+    circle: true,
+    circlemarker: false
+  } }) => {
   const mapRef = useRef(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [cityQuery, setCityQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const mapRefInstance = useRef(null);
+  const ZOOM_LEVEL = 18; // Default zoom level for the map
+
+  const handleCitySearch = async (query) => {
+    if (!query.trim()) {
+      setCitySuggestions([]);
+      setShowCitySuggestions(false);
+      return;
+    }
+
+    setIsLoadingCities(true);
+    setShowCitySuggestions(true);
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&type=city&limit=5`
+      );
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        setCitySuggestions(data);
+        setIsLoadingCities(false);
+      } else {
+        setCitySuggestions([]);
+        setIsLoadingCities(false);
+      }
+    } catch (error) {
+      console.error('Error searching cities:', error);
+      setCitySuggestions([]);
+    } finally {
+    //   setIsLoadingCities(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim() || !cityQuery.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setIsLoadingPlaces(true);
+    setShowSuggestions(true);
+
+    try {
+      const response = await fetch(
+        `https://api.foursquare.com/v3/places/search?query=${encodeURIComponent(searchQuery)}&limit=50&near=${encodeURIComponent(cityQuery)}`,
+        {
+          headers: {
+            'Authorization': process.env.NEXT_PUBLIC_FOURSQUARE_API_KEY,
+            'Accept': 'application/json'
+          }
+        }
+      );
+      
+      const data = await response.json();
+      console.log(data)
+      if (data.results && data.results.length > 0) {
+        setSuggestions(data.results);
+        setIsLoadingPlaces(false);
+      } else {
+        setSuggestions([]);
+        setIsLoadingPlaces(false);
+      }
+    } catch (error) {
+      console.error('Error searching places:', error);
+      setSuggestions([]);
+    } finally {
+    //   setIsLoadingPlaces(false);
+    }
+  };
 
   const getAddressDetails = async (c) => {
     try {
@@ -16,7 +104,7 @@ const MapComponent = ({ addressForm, setAddressForm }) => {
       );
       const data = await response.json();
       const address = data.address;
-      console.log(address);
+    //   console.log(address);
       if (address) {
         const city = address.city || address.town || address.village || address.county;
         // if (city) {
@@ -64,6 +152,7 @@ const MapComponent = ({ addressForm, setAddressForm }) => {
   };
 
   useEffect(() => {
+    
     if (!mapRef.current) return;
 
     // Fix Leaflet default icon issue
@@ -74,8 +163,8 @@ const MapComponent = ({ addressForm, setAddressForm }) => {
       shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
     });
 
-    const map = L.map(mapRef.current).setView([40.7128, -74.0060], 13);
-    
+    const map = L.map(mapRef.current).setView([40.7128, -74.0060], ZOOM_LEVEL);
+    mapRefInstance.current = map; // Store the map instance for later use
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
@@ -85,14 +174,7 @@ const MapComponent = ({ addressForm, setAddressForm }) => {
 
     // Initialize the draw control and pass it the FeatureGroup of editable layers
     const drawControl = new L.Control.Draw({
-      draw: {
-        polygon: true,
-        polyline: false,
-        rectangle: false,
-        marker: true,
-        circle: true,
-        circlemarker: false
-      },
+      draw: controls,
       edit: {
         featureGroup: drawnItems,
         remove: true
@@ -102,7 +184,7 @@ const MapComponent = ({ addressForm, setAddressForm }) => {
 
     map.on(L.Draw.Event.CREATED, function (event) {
       const layer = event.layer;
-      if (drawnItems.getLayers().length >= 2) {
+      if (drawnItems.getLayers().length >= 1) {
         drawnItems.clearLayers();
       }
       drawnItems.addLayer(layer);
@@ -140,10 +222,112 @@ const MapComponent = ({ addressForm, setAddressForm }) => {
     return () => {
       map.remove();
     };
-  }, [setAddressForm]);
+  }, []);
+
+
+  // Add this function to your component
+const addCircleMarker = (lat, lng, popupText = '') => {
+    if (mapRefInstance.current) {
+    //   const marker = L.CircleMarker([lat, lng]).addTo(mapRefInstance.current);
+        L.circleMarker([lat, lng], {
+            radius: 8,
+            color: 'blue',
+            fillColor: '#30f',
+            fillOpacity: 0.7
+        }).addTo(mapRefInstance.current);
+      if (popupText) {
+        marker.bindPopup(popupText);
+      }
+      return marker;
+    }
+  };
 
   return (
-    <div id="map" ref={mapRef} style={{ height: '80vh', width: '60vw' }} />
+    <>
+      <div id="map" ref={mapRef} style={{ height: '100%', width: '100%' }} />
+      <div className="flex flex-col gap-2 p-4">
+        <div className="relative">
+          <Input
+            type="text"
+            value={cityQuery}
+            onChange={(e) => {
+              const value = e.target.value;
+              setCityQuery(value);
+              handleCitySearch(value);
+            }}
+            placeholder="Enter city..."
+            className="w-2/3"
+          />
+          {showCitySuggestions && (
+            <div className="absolute z-20 w-2/3 bg-white shadow-lg rounded-md mt-1">
+              {isLoadingCities ? (
+                <div className="p-4 text-center text-gray-500">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
+                  <p className="mt-2">Searching cities...</p>
+                </div>
+              ) : citySuggestions.length > 0 ? (
+                citySuggestions.map((city, index) => (
+                  <div
+                    key={index}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setCityQuery(city.display_name.split(',')[0]);
+                      setShowCitySuggestions(false);
+                    }}
+                  >
+                    {city.display_name}
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-gray-500">No cities found</div>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="relative">
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              if (cityQuery.trim()) {
+                handleSearch();
+              }
+            }}
+            placeholder="Search places..."
+            className="w-2/3"
+          />
+          {showSuggestions && (
+            <div className="absolute z-10 w-2/3 bg-white shadow-lg rounded-md mt-1">
+              {isLoadingPlaces ? (
+                <div className="p-4 text-center text-gray-500">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
+                  <p className="mt-2">Searching places...</p>
+                </div>
+              ) : suggestions.length > 0 ? (
+                suggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSearchQuery(suggestion.name);
+                      setShowSuggestions(false);
+                      console.log("Selected place:", suggestion);
+                      mapRefInstance.current.setView([suggestion.geocodes.main.latitude, suggestion.geocodes.main.longitude], ZOOM_LEVEL);
+                      addCircleMarker(suggestion.geocodes.main.latitude, suggestion.geocodes.main.longitude, suggestion.name);
+                    }}
+                  >
+                    {suggestion.name}
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-gray-500">No places found</div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 };
 
