@@ -14,7 +14,7 @@ export default function MapPage() {
         street: '',
         city: '',
         neighborhood: '',
-        street_code: '',
+        // street_code: '',
         postal_code: '',
         province: '',
         position: {
@@ -32,23 +32,35 @@ export default function MapPage() {
         address: formAddress
     });
     const handleInputChange = (e) => {
-    //     const { name, value } = e.target;
-    //     if (name.includes('.')) {
-    //         const [parent, child] = name.split('.');
-    //         setFormData(prev => ({
-    //             ...prev,
-    //             [parent]: {
-    //                 ...prev[parent],
-    //                 [child]: value
-    //             }
-    //         }));
-    //     } else {
-    //         setFormData(prev => ({
-    //             ...prev,
-    //             [name]: value
-    //         }));
-    //     }
+        const { name, value } = e.target;
+        
+        if (name.startsWith('address.')) {
+            // Get the field name after 'address.'
+            const field = name.split('.')[1];
+            
+            // Update formAddress state
+            setFormAddress(prev => ({
+                ...prev,
+                [field]: value
+            }));
+            
+            // Update formData state with the new address
+            setFormData(prev => ({
+                ...prev,
+                address: {
+                    ...prev.address,
+                    [field]: value
+                }
+            }));
+        } else {
+            // Handle non-address fields
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
+
     useEffect(()=>{
         setFormData(prev=>({
             ...prev,
@@ -165,9 +177,8 @@ export default function MapPage() {
                                     <Input
                                         id="street"
                                         name="address.street"
-                                        value={formAddress.street}
+                                        value={formData.address.street}
                                         onChange={handleInputChange}
-                                        
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -175,7 +186,7 @@ export default function MapPage() {
                                     <Input
                                         id="city"
                                         name="address.city"
-                                        value={formAddress.city}
+                                        value={formData.address.city}
                                         onChange={handleInputChange}
                                         required
                                     />
@@ -185,7 +196,7 @@ export default function MapPage() {
                                     <Input
                                         id="neighborhood"
                                         name="address.neighborhood"
-                                        value={formAddress.neighborhood}
+                                        value={formData.address.neighborhood}
                                         onChange={handleInputChange}
                                         
                                     />
@@ -195,29 +206,29 @@ export default function MapPage() {
                                     <Input
                                         id="province"
                                         name="address.province"
-                                        value={formAddress.province}
+                                        value={formData.address.province}
                                         onChange={handleInputChange}
                                         
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                {/* <div className="space-y-2">
                                     <Label htmlFor="street_code">Street Code</Label>
                                     <Input
                                         id="street_code"
                                         name="address.street_code"
                                         type="number"
-                                        value={formAddress.street_code}
+                                        value={formData.address.street_code}
                                         onChange={handleInputChange}
                                         
                                     />
-                                </div>
+                                </div> */}
                                 <div className="space-y-2">
                                     <Label htmlFor="postal_code">Postal Code</Label>
                                     <Input
                                         id="postal_code"
                                         name="address.postal_code"
                                         type="number"
-                                        value={formAddress.postal_code}
+                                        value={formData.address.postal_code}
                                         onChange={handleInputChange}
                                         
                                     />

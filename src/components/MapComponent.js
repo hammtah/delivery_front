@@ -101,23 +101,23 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
       );
       const data = await response.json();
       const address = data.address;
-    //   console.log(address);
+      console.log("address: ", address);
       if (address) {
         const city = address.city || address.town || address.village || address.county;
         // if (city) {
-        setAddressForm(prev => ({
-          ...prev,
-          city: address.city,
-          neighborhood: address.neighbourhood,
-          street_code: address.street_code,
-          postal_code: address.postcode,
-          province: address.state_district,
+        setAddressForm({
+        //   ...prev,
+          city: address.city ? address.city : '',
+          neighborhood: address.neighbourhood ? address.neighbourhood : '',
+          street: address.street_code  || address.street || '',
+          postal_code: address.postcode ? address.postcode : '',
+          province: address.state_district ? address.state_district : '',
           position: {
-            name: city,
-            longitude: c.lng,
-            latitude: c.lat
+            name: city ? city : '',
+            longitude: c.lng ? c.lng : '',
+            latitude: c.lat ? c.lat : ''
           }
-        }));
+        });
         console.log("form: ", addressForm);
         // }
       }
