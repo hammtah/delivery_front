@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { map } from 'leaflet';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 if(localStorage.getItem('token')==null){
     redirect('/restaurants/login')
@@ -19,39 +19,38 @@ if(localStorage.getItem('token')==null){
 export default function CreateZonePage() {
     const router = useRouter();
     const [zoneType, setZoneType] = useState('radius'); // 'radius' or 'polygon'
+    const [mapKey, setMapKey] = useState(0);
     const [formData, setFormData] = useState({
         name: '',
-        description: '',
-        type: 'radius',
-        // For radius zone
-        center: {
-            address: '',
-            latitude: '',
-            longitude: ''
-        },
-        radius: '', // in meters
-        // For polygon zone
-        coordinates: [] // Array of {lat, lng} points
+        status: 'active',
+        type: 'circle',
+        user_fees: '',
+        partial_commission: '',
+        full_commission: '',
+        radius: '',
+        points: [],
+        center_address: {
+            position: {
+                name: '',
+                longitude: '',
+                latitude: ''
+            }
+        }
     });
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        
-        if (name.startsWith('center.')) {
-            const field = name.split('.')[1];
-            setFormData(prev => ({
-                ...prev,
-                center: {
-                    ...prev.center,
-                    [field]: value
-                }
-            }));
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value
-            }));
-        }
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSelectChange = (name, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
     const handleZoneTypeChange = (newType) => {
@@ -59,32 +58,34 @@ export default function CreateZonePage() {
         // Reset zone-specific data while keeping common fields
         setFormData(prev => ({
             name: prev.name,
-            description: prev.description,
-            type: newType,
-            center: {
-                address: '',
-                latitude: '',
-                longitude: ''
-            },
+            status: prev.status,
+            type: newType === 'radius' ? 'circle' : 'polygon',
+            user_fees: prev.user_fees,
+            partial_commission: prev.partial_commission,
+            full_commission: prev.full_commission,
             radius: '',
-            coordinates: []
+            points: [],
+            center_address: {
+                position: {
+                    name: '',
+                    longitude: '',
+                    latitude: ''
+                }
+            }
         }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/zones', {
+            const response = await fetch('http://127.0.0.1:8000/api/zone', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'accept': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({
-                    ...formData,
-                    type: zoneType
-                }),
+                body: JSON.stringify(formData),
             });
             
             if (!response.ok) {
@@ -92,28 +93,47 @@ export default function CreateZonePage() {
             }
             
             toast.success(`${zoneType === 'radius' ? 'Radius' : 'Polygon'} zone created successfully!`);
-            router.push('/restaurants-owner/zones');
+            setFormData({
+                name: '',
+                status: 'active',
+                type: 'circle',
+                user_fees: '',
+                partial_commission: '',
+                full_commission: '',
+                radius: '',
+                points: [],
+                center_address: {
+                    position: {
+                        name: '',
+                        longitude: '',
+                        latitude: ''
+                    }
+                }
+            });
+            setMapKey(prev => prev + 1);
         } catch (error) {
             toast.error('Failed to create zone: ' + error.message);
         }
     };
 
     const isFormValid = () => {
+        const commonFieldsValid = formData.name && 
+            formData.user_fees && 
+            formData.partial_commission && 
+            formData.full_commission;
+
         if (zoneType === 'radius') {
-            return formData.name && formData.center.latitude && formData.center.longitude && formData.radius;
+            return commonFieldsValid && formData.center_address.position.latitude && formData.center_address.position.longitude && formData.radius;
         } else {
-            return formData.name && formData.coordinates.length >= 3;
+            return commonFieldsValid && formData.points.length >= 3;
         }
     };
-
-    useEffect(()=>{
-        console.log('fffffff: ', formData)
-    }, [formData])
 
     return (
         <main className='flex flex-row gap-4 w-[88%] justify-center p-6 ml-auto h-[80vh]'>
             <div className="w-[80%] h-full">
                 <MapComponent 
+                    key={mapKey}
                     controls={{
                         polygon: zoneType === 'polygon',
                         polyline: false,
@@ -123,27 +143,30 @@ export default function CreateZonePage() {
                         circlemarker: false
                     }}
                     onCircleCreated={(center, radius) => {
-                        // if (zoneType === 'radius') {
-                            setFormData(prev => ({
-                                ...prev,
-                                center: {
-                                    ...prev.center,
-                                    latitude: center.lat,
-                                    longitude: center.lng
-                                },
-                                radius: radius
-                            }));
-                        // }
+                        setFormData(prev => ({
+                            ...prev,
+                            center_address: {
+                                position: {
+                                    name: 'Center Point' + new Date().toISOString(),
+                                    longitude: center.lng,
+                                    latitude: center.lat
+                                }
+                            },
+                            radius: radius
+                        }));
                     }}
                     onPolygonCreated={(coordinates) => {
-                        console.log(zoneType, coordinates)
-                        console.log(coordinates)
-                        // if (zoneType === 'polygon') {
-                            setFormData(prev => ({
-                                ...prev,
-                                coordinates: coordinates
-                            }));
-                        // }
+                        const points = coordinates.map(coord => ({
+                            position: {
+                                name: 'Point',
+                                longitude: coord.lng,
+                                latitude: coord.lat
+                            }
+                        }));
+                        setFormData(prev => ({
+                            ...prev,
+                            points: points
+                        }));
                     }}
                 />
             </div>
@@ -172,26 +195,71 @@ export default function CreateZonePage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="description">Description</Label>
+                                <Label htmlFor="status">Status</Label>
+                                <Select
+                                    value={formData.status}
+                                    onValueChange={(value) => handleSelectChange('status', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="active">Active</SelectItem>
+                                        <SelectItem value="inactive">Inactive</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="user_fees">User Fees</Label>
                                 <Input
-                                    id="description"
-                                    name="description"
-                                    value={formData.description}
+                                    id="user_fees"
+                                    name="user_fees"
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.user_fees}
                                     onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="partial_commission">Partial Commission</Label>
+                                <Input
+                                    id="partial_commission"
+                                    name="partial_commission"
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.partial_commission}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="full_commission">Full Commission</Label>
+                                <Input
+                                    id="full_commission"
+                                    name="full_commission"
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.full_commission}
+                                    onChange={handleInputChange}
+                                    required
                                 />
                             </div>
 
                             {zoneType === 'radius' ? (
                                 <>
-                                    <div className="space-y-2">
+                                    {/* <div className="space-y-2">
                                         <Label>Center Point</Label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="latitude">Latitude</Label>
                                                 <Input
                                                     id="latitude"
-                                                    name="center.latitude"
-                                                    value={formData.center.latitude}
+                                                    name="center_address.position.latitude"
+                                                    value={formData.center_address.position.latitude}
                                                     onChange={handleInputChange}
                                                     readOnly
                                                 />
@@ -200,16 +268,16 @@ export default function CreateZonePage() {
                                                 <Label htmlFor="longitude">Longitude</Label>
                                                 <Input
                                                     id="longitude"
-                                                    name="center.longitude"
-                                                    value={formData.center.longitude}
+                                                    name="center_address.position.longitude"
+                                                    value={formData.center_address.position.longitude}
                                                     onChange={handleInputChange}
                                                     readOnly
                                                 />
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> */}
 
-                                    <div className="space-y-2">
+                                    {/* <div className="space-y-2">
                                         <Label htmlFor="radius">Radius (meters)</Label>
                                         <Input
                                             id="radius"
@@ -219,14 +287,14 @@ export default function CreateZonePage() {
                                             onChange={handleInputChange}
                                             readOnly
                                         />
-                                    </div>
+                                    </div> */}
                                 </>
                             ) : (
                                 <div className="space-y-2">
                                     <Label>Polygon Points</Label>
                                     <div className="text-sm text-muted-foreground">
-                                        {formData.coordinates.length > 0 
-                                            ? `${formData.coordinates.length} points defined` 
+                                        {formData.points.length > 0 
+                                            ? `${formData.points.length} points defined` 
                                             : 'Draw a polygon on the map'}
                                     </div>
                                 </div>
@@ -245,6 +313,4 @@ export default function CreateZonePage() {
             </Card>
         </main>
     );
-
-    
 }
