@@ -140,7 +140,8 @@ export default function CreateZonePage() {
                         rectangle: false,
                         marker: false,
                         circle: zoneType === 'radius',
-                        circlemarker: false
+                        circlemarker: false,
+                        userPosition: true
                     }}
                     onCircleCreated={(center, radius) => {
                         setFormData(prev => ({

@@ -16,7 +16,8 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     rectangle: false,
     marker: true,
     circle: true,
-    circlemarker: false
+    circlemarker: false,
+    userPosition: true
   }, onCircleCreated, onPolygonCreated, initialZoneData }) => {
   const mapRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -214,7 +215,7 @@ const addCircleMarker = (lat, lng, popupText = '') => {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Fix Leaflet default icon issue
+    // Fix Leaflet defaul;t icon issue
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
       iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -225,7 +226,9 @@ const addCircleMarker = (lat, lng, popupText = '') => {
     const map = L.map(mapRef.current).setView([40.7128, -74.0060], ZOOM_LEVEL);
     mapRefInstance.current = map;
     // Get user location and set initial map view
-    getUserLocation();
+    if(controls.userPosition == true){
+        getUserLocation();
+    }
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '© OpenStreetMap contributors'
@@ -376,7 +379,7 @@ const addCircleMarker = (lat, lng, popupText = '') => {
             )}
           </Button>
           {showCitySuggestions && (
-            <div className="absolute z-20 w-2/3 bg-white shadow-lg rounded-md mt-1 top-full">
+            <div className="absolute z-20 w-2/3 bg-white shadow-lg rounded-md mt-1 mb-3 overflow-y-auto max-h-[160px] top-full">
               {isLoadingCities ? (
                 <div className="p-4 text-center text-gray-500">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
@@ -414,11 +417,11 @@ const addCircleMarker = (lat, lng, popupText = '') => {
               }
             }}
             placeholder="Search places..."
-            className="w-1/3"
+            className="w-1/3 "
           />
 
           {showSuggestions && (
-            <div className="absolute z-10 w-2/3 bg-white shadow-lg rounded-md mt-1">
+            <div className="absolute z-10 w-2/3 bg-white shadow-lg rounded-md mt-1 mb-3 overflow-y-auto max-h-[160px]">
               {isLoadingPlaces ? (
                 <div className="p-4 text-center text-gray-500">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>

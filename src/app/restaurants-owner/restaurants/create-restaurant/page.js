@@ -256,7 +256,7 @@ const CreateRestaurantPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 ">
       <h1 className="text-2xl font-bold mb-6">Create New Restaurant</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -281,7 +281,7 @@ const CreateRestaurantPage = () => {
                     className="w-full"
                   />
                   {showCitySuggestions && citySuggestions.length > 0 && (
-                    <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                    <div className="absolute z-20 w-full mt-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-55 overflow-auto">
                       {citySuggestions.map((city, index) => (
                         <div
                           key={index}
@@ -297,7 +297,7 @@ const CreateRestaurantPage = () => {
                     </div>
                   )}
                 </div>
-                <Input
+                <Input 
                   type="text"
                   value={searchQuery}
                   onChange={(e) => {
@@ -307,11 +307,11 @@ const CreateRestaurantPage = () => {
                     }
                   }}
                   placeholder="Search restaurant..."
-                  className="w-2/3"
+                  className="w-2/3 mb-72"
                 />
               </div>
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-10 w-full mt-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-55 overflow-auto ">
                   {suggestions.map((suggestion, index) => (
                     <div
                       key={index}

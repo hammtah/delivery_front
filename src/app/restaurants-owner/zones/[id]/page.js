@@ -72,7 +72,8 @@ useEffect(() => {
                         rectangle: false,
                         marker: false,
                         circle: false,
-                        circlemarker: false
+                        circlemarker: false,
+                        userPosition: false
                     }}
                     initialZoneData={zoneData}
                 />
