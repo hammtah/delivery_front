@@ -47,7 +47,7 @@ const sidebarItems = [
   },
   {
     title: 'Zones Management',
-    href: '/restaurants-owner/zones/create',
+    href: '/restaurants-owner/zones',
     icon: <MapPin className="w-5 h-5" />
   },
   {

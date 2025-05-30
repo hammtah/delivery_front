@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { toast } from 'sonner';
 
 const MapComponent = ({ addressForm, setAddressForm, controls={
     polygon: true,
@@ -18,7 +19,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     circle: true,
     circlemarker: false,
     userPosition: true
-  }, onCircleCreated, onPolygonCreated, initialZoneData }) => {
+  }, onCircleCreated, onPolygonCreated, initialZoneData, editing=true }) => {
   const mapRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [cityQuery, setCityQuery] = useState('');
@@ -296,7 +297,13 @@ const addCircleMarker = (lat, lng, popupText = '') => {
         }).addTo(drawnItems);
         
         // Center the map on the circle
-        map.setView([center.latitude, center.longitude], ZOOM_LEVEL);
+        const bounds = circle.getBounds();
+        if(bounds.isValid()) {
+            map.fitBounds(bounds);
+        }
+        else{
+            map.setView([center.latitude, center.longitude], ZOOM_LEVEL);
+        }
       } else if (initialZoneData.type === 'polygon') {
         const coordinates = initialZoneData.points.map(point => [
           point.geoPosition.latitude,
@@ -311,7 +318,13 @@ const addCircleMarker = (lat, lng, popupText = '') => {
         
         // Center the map on the polygon
         const bounds = polygon.getBounds();
-        map.fitBounds(bounds);
+        if(bounds.isValid()) {
+            map.fitBounds(bounds);
+        }
+        else{
+            map.setView([0,0], ZOOM_LEVEL);
+            toast.error("Invalid polygon coordinates, unable to fit bounds, in polygon: " + initialZoneData.name);
+        }
       }
     }
 
@@ -327,13 +340,14 @@ const addCircleMarker = (lat, lng, popupText = '') => {
     // Remove existing draw control
     mapRefInstance.current.removeControl(drawControlRef.current);
 
+    const editObject = editing ? {
+        featureGroup: drawnItemsRef.current,
+        remove: true
+      } : false;
     // Create new draw control with updated options
     const newDrawControl = new L.Control.Draw({
       draw: controls,
-      edit: {
-        featureGroup: drawnItemsRef.current,
-        remove: true
-      }
+      edit: editObject
     });
 
     // Add new draw control
