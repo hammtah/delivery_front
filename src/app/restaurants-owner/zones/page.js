@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, List, Map, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Search, Filter, List, Map, MoreVertical, Edit, Trash2, Plus } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 // import { headers } from 'next/headers';
 
 // Dynamically import the map component to avoid SSR issues
@@ -141,7 +142,7 @@ export default function ZonesDashboard() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex gap-2 w-full md:w-auto">
           <Input
             placeholder="Search zones..."
@@ -161,7 +162,16 @@ export default function ZonesDashboard() {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2  ">
+          <Link href="/restaurants-owner/zones/create" className='order-last'>
+            <Button
+              variant="outline"
+              className=""
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create New Zone
+            </Button>
+          </Link>
           <Button
             variant={viewMode === 'map' ? 'default' : 'outline'}
             onClick={() => setViewMode('map')}
