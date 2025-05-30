@@ -252,7 +252,7 @@ export default function CreateZonePage() {
 
                             {zoneType === 'radius' ? (
                                 <>
-                                    {/* <div className="space-y-2">
+                                    <div className="space-y-2">
                                         <Label>Center Point</Label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
@@ -276,9 +276,9 @@ export default function CreateZonePage() {
                                                 />
                                             </div>
                                         </div>
-                                    </div> */}
+                                    </div>
 
-                                    {/* <div className="space-y-2">
+                                    <div className="space-y-2">
                                         <Label htmlFor="radius">Radius (meters)</Label>
                                         <Input
                                             id="radius"
@@ -288,7 +288,7 @@ export default function CreateZonePage() {
                                             onChange={handleInputChange}
                                             readOnly
                                         />
-                                    </div> */}
+                                    </div>
                                 </>
                             ) : (
                                 <div className="space-y-2">

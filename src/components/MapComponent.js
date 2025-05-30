@@ -19,7 +19,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     circle: true,
     circlemarker: false,
     userPosition: true
-  }, onCircleCreated, onPolygonCreated, initialZoneData, editing=true }) => {
+  }, onCircleCreated, onPolygonCreated, initialZoneData, editing=true, changeAddressFormData }) => {
   const mapRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [cityQuery, setCityQuery] = useState('');
@@ -161,6 +161,7 @@ const addCircleMarker = (lat, lng, popupText = '') => {
       const data = await response.json();
       const address = data.address;
       console.log("address: ", address);
+
       if (address) {
         const city = address.city || address.town || address.village || address.county;
         // if (city) {
@@ -264,6 +265,9 @@ const addCircleMarker = (lat, lng, popupText = '') => {
       if (event.layerType === "polygon") {
         polygonHandler(layer);
       }
+        if (event.layerType === "marker") {
+            markerHandler(layer);
+        }
     });
 
     // Handle edited shapes
@@ -277,6 +281,9 @@ const addCircleMarker = (lat, lng, popupText = '') => {
         else if (layer instanceof L.Polygon) {
           polygonHandler(layer);
         }
+        else if (layer instanceof L.Marker) {
+          markerHandler(layer);
+        }
       });
     });
 
@@ -287,6 +294,7 @@ const addCircleMarker = (lat, lng, popupText = '') => {
 
     // Display initial zone data if provided
     if (initialZoneData) {
+        console.log("initialZoneData", initialZoneData)
       if (initialZoneData.type === 'circle') {
         const center = initialZoneData.center_address.geoPosition;
         const circle = L.circle([center.latitude, center.longitude], {

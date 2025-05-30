@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
+import { FanIcon } from 'lucide-react';
 
 export default function MapPage() {
 
@@ -31,6 +32,7 @@ export default function MapPage() {
         note: '',
         address: formAddress
     });
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         
@@ -176,7 +178,7 @@ export default function MapPage() {
                                     <Label htmlFor="street">Street</Label>
                                     <Input
                                         id="street"
-                                        name="address.street"
+                                        name="street"
                                         value={formData.address.street}
                                         onChange={handleInputChange}
                                     />
@@ -185,7 +187,7 @@ export default function MapPage() {
                                     <Label htmlFor="city">City</Label>
                                     <Input
                                         id="city"
-                                        name="address.city"
+                                        name="city"
                                         value={formData.address.city}
                                         onChange={handleInputChange}
                                         required
@@ -195,7 +197,7 @@ export default function MapPage() {
                                     <Label htmlFor="neighborhood">Neighborhood</Label>
                                     <Input
                                         id="neighborhood"
-                                        name="address.neighborhood"
+                                        name="neighborhood"
                                         value={formData.address.neighborhood}
                                         onChange={handleInputChange}
                                         
@@ -205,7 +207,7 @@ export default function MapPage() {
                                     <Label htmlFor="province">Province</Label>
                                     <Input
                                         id="province"
-                                        name="address.province"
+                                        name="province"
                                         value={formData.address.province}
                                         onChange={handleInputChange}
                                         
@@ -226,7 +228,7 @@ export default function MapPage() {
                                     <Label htmlFor="postal_code">Postal Code</Label>
                                     <Input
                                         id="postal_code"
-                                        name="address.postal_code"
+                                        name="postal_code"
                                         type="number"
                                         value={formData.address.postal_code}
                                         onChange={handleInputChange}
