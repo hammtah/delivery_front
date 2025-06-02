@@ -4,13 +4,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Mail, Phone, User, Plus } from 'lucide-react'
+import { MapPin, Mail, Phone, User, Plus, Eye, Pencil, Trash2, Navigation, Map, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from "sonner"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
 export default function ClientsPage() {
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [clientToDelete, setClientToDelete] = useState(null);
+    const [addressesDialogOpen, setAddressesDialogOpen] = useState(false);
+    const [selectedClient, setSelectedClient] = useState(null);
 
     useEffect(() => {
         fetchClients();
@@ -37,6 +49,39 @@ export default function ClientsPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDeleteClick = (client) => {
+        setClientToDelete(client);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDelete = async () => {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/client/${clientToDelete.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete client');
+            }
+
+            toast.success('Client deleted successfully');
+            fetchClients(); // Refresh the list
+        } catch (error) {
+            toast.error('Failed to delete client: ' + error.message);
+        } finally {
+            setDeleteDialogOpen(false);
+            setClientToDelete(null);
+        }
+    };
+
+    const handleAddressesClick = (client) => {
+        setSelectedClient(client);
+        setAddressesDialogOpen(true);
     };
 
     if (loading) {
@@ -68,9 +113,8 @@ export default function ClientsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Client Info</TableHead>
-                                <TableHead>Address</TableHead>
-                                <TableHead>Zones</TableHead>
                                 <TableHead>Note</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -93,44 +137,37 @@ export default function ClientsPage() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {client.addresses.map((address) => (
-                                            <div key={address.address_id} className="space-y-2">
-                                                <div className="flex items-center gap-2">
-                                                    <MapPin className="h-4 w-4 text-gray-500" />
-                                                    <div>
-                                                        <p className="text-sm">{address.city}</p>
-                                                        <p className="text-sm text-gray-500">{address.province}</p>
-                                                        <p className="text-sm text-gray-500">Postal: {address.postal_code}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="space-y-2">
-                                            {client.addresses.map((address) => (
-                                                <div key={address.address_id}>
-                                                    {address.zones.length > 0 ? (
-                                                        address.zones.map((zone) => (
-                                                            <Badge 
-                                                                key={zone.id}
-                                                            variant={zone.status === 'active' ? 'default' : 'secondary'}
-                                                            className="mr-2 mb-2"
-                                                        >
-                                                            {zone.name}
-                                                        </Badge>
-                                                    ))
-                                                    ) : (
-                                                        <Badge variant="secondary" className="mr-2 mb-2">
-                                                            N/A
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
                                         <p className="text-sm text-gray-500">{client.note || 'No note'}</p>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className="h-8 w-8"
+                                                onClick={() => handleAddressesClick(client)}
+                                            >
+                                                <Map className="h-4 w-4" />
+                                            </Button>
+                                            <Link href={`/restaurants-owner/client/${client.id}`}>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                            </Link>
+                                            <Link href={`/restaurants-owner/client/${client.id}/edit`}>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            </Link>
+                                            <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                onClick={() => handleDeleteClick(client)}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -138,6 +175,106 @@ export default function ClientsPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Delete Dialog */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Client</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete {clientToDelete?.user?.name}? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Addresses Dialog */}
+            <Dialog open={addressesDialogOpen} onOpenChange={setAddressesDialogOpen}>
+                <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>Manage Addresses & Zones</DialogTitle>
+                        <DialogDescription>
+                            Manage addresses and zones for {selectedClient?.user?.name}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4 space-y-4">
+                        {selectedClient?.addresses.map((address) => (
+                            <div key={address.address_id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-white p-3 rounded-lg shadow-sm">
+                                        <MapPin className="h-5 w-5 text-blue-500" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-gray-900">{address.name}</h3>
+                                                <p className="text-sm text-gray-500">{address.city}, {address.province}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className="text-gray-500">
+                                                    {address.postal_code}
+                                                </Badge>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        
+                                        {address.zones.length > 0 && (
+                                            <div className="mt-4">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <Navigation className="h-4 w-4 text-gray-400" />
+                                                    <p className="text-sm font-medium text-gray-500">Delivery Zones</p>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {address.zones.map((zone) => (
+                                                        <Link 
+                                                            key={zone.id}
+                                                            href={`/restaurants-owner/zones/${zone.id}`}
+                                                            className="no-underline"
+                                                        >
+                                                            <Badge 
+                                                                variant={zone.status === 'active' ? 'default' : 'secondary'}
+                                                                className="px-3 py-1 cursor-pointer hover:opacity-80 transition-opacity"
+                                                            >
+                                                                {zone.name}
+                                                                {zone.type === 'circle' && zone.radius && (
+                                                                    <span className="ml-2 text-xs opacity-75">
+                                                                        ({zone.radius}m)
+                                                                    </span>
+                                                                )}
+                                                            </Badge>
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <DialogFooter className="mt-6">
+                        <Button variant="outline" onClick={() => setAddressesDialogOpen(false)}>
+                            Close
+                        </Button>
+                        <Link href={`/restaurants-owner/client/${selectedClient?.id}/address/create`}>
+                            <Button className="flex items-center gap-2">
+                                <PlusCircle className="h-4 w-4" />
+                                Add New Address
+                            </Button>
+                        </Link>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </main>
     );
 } 

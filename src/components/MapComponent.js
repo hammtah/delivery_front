@@ -19,7 +19,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     circle: true,
     circlemarker: false,
     userPosition: true
-  }, onCircleCreated, onPolygonCreated, initialZoneData, editing=true, changeAddressFormData }) => {
+  }, onCircleCreated, onPolygonCreated, initialZoneData, editing=true, changeAddressFormData, initialPosition }) => {
   const mapRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [cityQuery, setCityQuery] = useState('');
@@ -225,7 +225,16 @@ const addCircleMarker = (lat, lng, popupText = '') => {
       shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
     });
 
-    const map = L.map(mapRef.current).setView([40.7128, -74.0060], ZOOM_LEVEL);
+
+    let map;
+    if(initialPosition){
+        map = L.map(mapRef.current).setView([initialPosition.lat, initialPosition.lng], ZOOM_LEVEL);
+        addCircleMarker(initialPosition.lat, initialPosition.lng, initialPosition.name); // Add circle marker at user's location
+    }
+    else{
+        map = L.map(mapRef.current).setView([40.7128, -74.0060], ZOOM_LEVEL);
+    }
+    
     mapRefInstance.current = map;
     // Get user location and set initial map view
     if(controls.userPosition == true){
