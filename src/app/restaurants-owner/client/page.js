@@ -205,7 +205,7 @@ export default function ClientsPage() {
                             Manage addresses and zones for {selectedClient?.user?.name}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="mt-4 space-y-4">
+                    <div className="mt-4 space-y-4 overflow-y-auto max-h-[500px]">
                         {selectedClient?.addresses.map((address) => (
                             <div key={address.address_id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                                 <div className="flex items-start gap-4">

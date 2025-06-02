@@ -4,13 +4,16 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Mail, Phone, User, Package, Navigation } from 'lucide-react'
+import { MapPin, Mail, Phone, User, Package, Navigation, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from "sonner"
+import Link from 'next/link';
+import { Button } from "@/components/ui/button"
 
 export default function ClientDetailsPage() {
     const params = useParams();
     const [client, setClient] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [currentAddressIndex, setCurrentAddressIndex] = useState(0);
 
     useEffect(() => {
         fetchClientDetails();
@@ -37,6 +40,18 @@ export default function ClientDetailsPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePrevAddress = () => {
+        setCurrentAddressIndex((prev) => 
+            prev === 0 ? (client?.addresses.length - 1) : prev - 1
+        );
+    };
+
+    const handleNextAddress = () => {
+        setCurrentAddressIndex((prev) => 
+            prev === (client?.addresses.length - 1) ? 0 : prev + 1
+        );
     };
 
     if (loading) {
@@ -96,54 +111,109 @@ export default function ClientDetailsPage() {
 
                 {/* Addresses & Zones Card */}
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Addresses & Zones</CardTitle>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={handlePrevAddress}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={handleNextAddress}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-6">
-                            {client.addresses.map((address) => (
-                                <div key={address.address_id} className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                                    <div className="flex items-start gap-4">
-                                        <div className="bg-white p-3 rounded-lg shadow-sm">
-                                            <MapPin className="h-6 w-6 text-blue-500" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h3 className="text-lg font-semibold text-gray-900">{address.city}</h3>
-                                                <Badge variant="outline" className="text-gray-500">
-                                                    {address.province}
-                                                </Badge>
-                                            </div>
-                                            <p className="text-sm text-gray-500 mb-4">Postal Code: {address.postal_code}</p>
-                                            
-                                            {address.zones.length > 0 && (
-                                                <div className="mt-4">
-                                                    <div className="flex items-center gap-2 mb-3">
-                                                        <Navigation className="h-4 w-4 text-gray-400" />
-                                                        <p className="text-sm font-medium text-gray-500">Delivery Zones</p>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {address.zones.map((zone) => (
-                                                            <Badge 
-                                                                key={zone.id}
-                                                                variant={zone.status === 'active' ? 'default' : 'secondary'}
-                                                                className="px-3 py-1"
-                                                            >
-                                                                {zone.name}
-                                                                {zone.type === 'circle' && zone.radius && (
-                                                                    <span className="ml-2 text-xs opacity-75">
-                                                                        ({zone.radius}m)
-                                                                    </span>
-                                                                )}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
+                        <div className="relative">
+                            {/* Address Slider */}
+                            <div className="overflow-hidden">
+                                <div 
+                                    className="flex transition-transform duration-300 ease-in-out"
+                                    style={{ 
+                                        width: `${client.addresses.length * 100}%`,
+                                        transform: `translateX(-${(currentAddressIndex * 100) / client.addresses.length}%)`
+                                    }}
+                                >
+                                    {client.addresses.map((address, index) => (
+                                        <div 
+                                            key={address.address_id} 
+                                            className="bg-gray-50 rounded-xl p-6 border border-gray-100"
+                                            style={{ width: `${100 / client.addresses.length}%` }}
+                                        >
+                                            <div className="flex items-start gap-4">
+                                                <div className="bg-white p-3 rounded-lg shadow-sm">
+                                                    <MapPin className="h-6 w-6 text-blue-500" />
                                                 </div>
-                                            )}
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <h3 className="text-lg font-semibold text-gray-900">{address.name}</h3>
+                                                        <Badge variant="outline" className="text-gray-500">
+                                                            {address.province}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 mb-4">
+                                                        {address.city}, Postal Code: {address.postal_code}
+                                                    </p>
+                                                    
+                                                    {address.zones.length > 0 && (
+                                                        <div className="mt-4">
+                                                            <div className="flex items-center gap-2 mb-3">
+                                                                <Navigation className="h-4 w-4 text-gray-400" />
+                                                                <p className="text-sm font-medium text-gray-500">Delivery Zones</p>
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {address.zones.map((zone) => (
+                                                                    <Link 
+                                                                        key={zone.id}
+                                                                        href={`/restaurants-owner/zones/${zone.id}`}
+                                                                        className="no-underline"
+                                                                    >
+                                                                        <Badge 
+                                                                            variant={zone.status === 'active' ? 'default' : 'secondary'}
+                                                                            className="px-3 py-1 cursor-pointer hover:opacity-80 transition-opacity"
+                                                                        >
+                                                                            {zone.name}
+                                                                            {zone.type === 'circle' && zone.radius && (
+                                                                                <span className="ml-2 text-xs opacity-75">
+                                                                                    ({zone.radius}m)
+                                                                                </span>
+                                                                            )}
+                                                                        </Badge>
+                                                                    </Link>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
+                            </div>
+
+                            {/* Dots Navigation */}
+                            <div className="flex justify-center gap-2 mt-4">
+                                {client.addresses.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        className={`w-2 h-2 rounded-full transition-colors ${
+                                            index === currentAddressIndex 
+                                                ? 'bg-blue-500' 
+                                                : 'bg-gray-300 hover:bg-gray-400'
+                                        }`}
+                                        onClick={() => setCurrentAddressIndex(index)}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
