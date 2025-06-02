@@ -62,7 +62,7 @@ const sidebarItems = [
   },
   {
     title: 'Clients Management',
-    href: '/restaurants-owner/client/create',
+    href: '/restaurants-owner/client/',
     icon: <Users2 className="w-5 h-5" />
   },
   {
