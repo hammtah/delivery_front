@@ -1,12 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Mail, Phone, User, Plus, Eye, Pencil, Trash2, Navigation, Map, PlusCircle } from 'lucide-react'
+import { MapPin, Mail, Phone, User, Plus, Eye, Pencil, Trash2, Navigation, Map, PlusCircle, Search } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
 import {
     Dialog,
     DialogContent,
@@ -23,6 +23,7 @@ export default function ClientsPage() {
     const [clientToDelete, setClientToDelete] = useState(null);
     const [addressesDialogOpen, setAddressesDialogOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         fetchClients();
@@ -70,7 +71,7 @@ export default function ClientsPage() {
             }
 
             toast.success('Client deleted successfully');
-            fetchClients(); // Refresh the list
+            fetchClients();
         } catch (error) {
             toast.error('Failed to delete client: ' + error.message);
         } finally {
@@ -84,6 +85,12 @@ export default function ClientsPage() {
         setAddressesDialogOpen(true);
     };
 
+    const filteredClients = clients.filter(client => 
+        client.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        client.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        client.user.phone.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen ml-[12%]">
@@ -94,87 +101,98 @@ export default function ClientsPage() {
 
     return (
         <main className="p-6 ml-[12%] w-[88%]">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Clients</h1>
-                <Link href="/restaurants-owner/client/create">
-                    <Button className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Add New Client
-                    </Button>
-                </Link>
-            </div>
+            <div className="flex flex-col gap-6">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold">Clients</h1>
+                        <p className="text-gray-500 mt-1">Manage your client list and their addresses</p>
+                    </div>
+                    <Link href="/restaurants-owner/client/create">
+                        <Button className="flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            Add New Client
+                        </Button>
+                    </Link>
+                </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Client List</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Client Info</TableHead>
-                                <TableHead>Note</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {clients.map((client) => (
-                                <TableRow key={client.id}>
-                                    <TableCell>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <User className="h-4 w-4 text-gray-500" />
-                                                <span className="font-medium">{client.user.name}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Mail className="h-4 w-4 text-gray-500" />
-                                                <span className="text-sm text-gray-500">{client.user.email}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Phone className="h-4 w-4 text-gray-500" />
-                                                <span className="text-sm text-gray-500">{client.user.phone}</span>
-                                            </div>
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                        placeholder="Search clients by name, email, or phone..."
+                        className="pl-10"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredClients.map((client) => (
+                        <Card key={client.id} className="group hover:shadow-lg transition-shadow duration-200">
+                            <CardContent className="p-6">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-primary/10 p-2 rounded-full">
+                                            <User className="h-5 w-5 text-primary" />
                                         </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <p className="text-sm text-gray-500">{client.note || 'No note'}</p>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className="h-8 w-8"
-                                                onClick={() => handleAddressesClick(client)}
-                                            >
-                                                <Map className="h-4 w-4" />
-                                            </Button>
-                                            <Link href={`/restaurants-owner/client/${client.id}`}>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <Eye className="h-4 w-4" />
-                                                </Button>
-                                            </Link>
-                                            <Link href={`/restaurants-owner/client/${client.id}/edit`}>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                            </Link>
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                onClick={() => handleDeleteClick(client)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                        <div>
+                                            <h3 className="font-semibold text-lg">{client.user.name}</h3>
+                                            <p className="text-sm text-gray-500">{client.user.email}</p>
                                         </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                                    </div>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-8 w-8"
+                                            onClick={() => handleAddressesClick(client)}
+                                        >
+                                            <Map className="h-4 w-4" />
+                                        </Button>
+                                        <Link href={`/restaurants-owner/client/${client.id}`}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                        </Link>
+                                        <Link href={`/restaurants-owner/client/${client.id}/edit`}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                        </Link>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                            onClick={() => handleDeleteClick(client)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                        <Phone className="h-4 w-4" />
+                                        <span>{client.user.phone}</span>
+                                    </div>
+                                    {client.note && (
+                                        <div className="text-sm text-gray-600 line-clamp-2">
+                                            <span className="font-medium">Note:</span> {client.note}
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="text-xs">
+                                            {client.addresses?.length || 0} Addresses
+                                        </Badge>
+                                        <Badge variant="outline" className="text-xs">
+                                            {client.addresses?.reduce((acc, addr) => acc + addr.zones.length, 0) || 0} Zones
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
 
             {/* Delete Dialog */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -248,7 +266,7 @@ export default function ClientsPage() {
                                                                 {zone.name}
                                                                 {zone.type === 'circle' && zone.radius && (
                                                                     <span className="ml-2 text-xs opacity-75">
-                                                                        ({zone.radius}m)
+                                                                        {zone.radius}km
                                                                     </span>
                                                                 )}
                                                             </Badge>
@@ -262,17 +280,6 @@ export default function ClientsPage() {
                             </div>
                         ))}
                     </div>
-                    <DialogFooter className="mt-6">
-                        <Button variant="outline" onClick={() => setAddressesDialogOpen(false)}>
-                            Close
-                        </Button>
-                        <Link href={`/restaurants-owner/client/${selectedClient?.id}/address/create`}>
-                            <Button className="flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                Add New Address
-                            </Button>
-                        </Link>
-                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </main>

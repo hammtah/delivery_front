@@ -171,19 +171,19 @@ export default function CreateZonePage() {
                     }}
                 />
             </div>
-            <Card className="w-[20%]">
+            <Card className="w-[20%] ">
                 <CardHeader>
                     <CardTitle>Create New Zone</CardTitle>
                     <CardDescription>Choose the type of zone and draw it on the map.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Tabs defaultValue="radius" className="w-full" onValueChange={handleZoneTypeChange}>
+                    <Tabs defaultValue="radius" className="w-full " onValueChange={handleZoneTypeChange}>
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="radius">Radius Zone</TabsTrigger>
                             <TabsTrigger value="polygon">Polygon Zone</TabsTrigger>
                         </TabsList>
                         
-                        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                        <form onSubmit={handleSubmit} className="space-y-4 mt-4 ">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Zone Name</Label>
                                 <Input
@@ -301,9 +301,9 @@ export default function CreateZonePage() {
                                 </div>
                             )}
 
-                            <Button 
+                            <Button  
                                 type="submit" 
-                                className="w-full"
+                                className="w-full mb-2"
                                 disabled={!isFormValid()}
                             >
                                 Create Zone
