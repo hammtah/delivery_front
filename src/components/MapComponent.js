@@ -299,9 +299,12 @@ const addCircleMarker = (lat, lng, popupText = '') => {
         const center = initialZoneData.center_address.geoPosition;
         const circle = L.circle([center.latitude, center.longitude], {
           radius: initialZoneData.radius,
-          color: 'blue',
-          fillColor: '#30f',
-          fillOpacity: 0.2
+        //   color: 'blue',
+        //   fillColor: '#30f',
+        //   fillOpacity: 0.2
+        color: '#ef6c00',
+        fillColor: '#ffb74d',
+        fillOpacity: 0.2
         }).addTo(drawnItems);
         
         // Center the map on the circle
@@ -319,9 +322,12 @@ const addCircleMarker = (lat, lng, popupText = '') => {
         ]);
         
         const polygon = L.polygon(coordinates, {
-          color: 'blue',
-          fillColor: '#30f',
-          fillOpacity: 0.2
+        //   color: 'blue',
+        //   fillColor: '#30f',
+        //   fillOpacity: 0.2
+        color: '#ef6c00',
+        fillColor: '#ffb74d',
+        fillOpacity: 0.2
         }).addTo(drawnItems);
         
         // Center the map on the polygon
