@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { MapPin, MoreVertical, Pencil, Trash, CalendarClock } from 'lucide-react';
+import { MapPin, MoreVertical, Pencil, Trash, CalendarClock, Truck } from 'lucide-react';
 import GlowingHeartCircle from '@/components/glowing-heart-circle';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -142,6 +142,11 @@ if(localStorage.getItem('token')==null){
                     <Link href={`/restaurants-owner/restaurants/${restaurant.id}/working-hours`}>
                       <DropdownMenuItem className='cursor-pointer'>
                         <CalendarClock className='w-4 h-4' /> Working Hours
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href={`/restaurants-owner/restaurants/${restaurant.id}/delivery`}>
+                      <DropdownMenuItem className='cursor-pointer'>
+                        <Truck className='w-4 h-4' /> Delivery
                       </DropdownMenuItem>
                     </Link>
                   </DropdownMenuContent>
