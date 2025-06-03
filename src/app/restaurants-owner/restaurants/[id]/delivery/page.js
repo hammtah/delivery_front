@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User, Phone, Mail, MapPin, Search, Home, Building2, Navigation, CircleDot, Plus, Minus, Clock } from "lucide-react";
+import { User, Phone, Mail, MapPin, Search, Home, Building2, Navigation, CircleDot, Plus, Minus, Clock, AlertCircleIcon  } from "lucide-react";
 import Image from "next/image";
 
 export default function CreateDeliveryPage() {
@@ -40,6 +40,19 @@ export default function CreateDeliveryPage() {
   const [loadingDrivers, setLoadingDrivers] = useState(false);
   const [items, setItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
+
+  const [commissions, setCommissions] = useState({
+    full_commission: {},
+    partial_commission: {},
+    user_fees: {}
+  });
+  const [loadingCommissions, setLoadingCommissions] = useState(false);
+
+  const [selectedZones, setSelectedZones] = useState({
+    full_commission: 'default',
+    partial_commission: 'default',
+    user_fees: 'default'
+  });
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -137,6 +150,68 @@ export default function CreateDeliveryPage() {
     }
   };
 
+  const fetchCommissions = async (addressId) => {
+    setLoadingCommissions(true);
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/restaurant/${params.id}/address/${addressId}/commission`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch commissions');
+      }
+      
+      const data = await response.json();
+      setCommissions(data);
+      
+      // Set initial values in formData
+      const defaultFullCommission = Object.values(data.full_commission)[0] || 0;
+      const defaultPartialCommission = Object.values(data.partial_commission)[0] || 0;
+      const defaultFees = Object.values(data.user_fees)[0] || 0;
+      
+      setFormData(prev => ({
+        ...prev,
+        full_commission: defaultFullCommission,
+        partial_commission: defaultPartialCommission,
+        fees: defaultFees
+      }));
+
+      // Reset selected zones to default
+      setSelectedZones({
+        full_commission: 'default',
+        partial_commission: 'default',
+        user_fees: 'default'
+      });
+    } catch (error) {
+      toast.error('Failed to fetch commissions: ' + error.message);
+    } finally {
+      setLoadingCommissions(false);
+    }
+  };
+
+  const handleZoneChange = (type, zone) => {
+    setSelectedZones(prev => ({ ...prev, [type]: zone }));
+    
+    // Map the commission type to the correct form data field
+    const formFieldMap = {
+      full_commission: 'full_commission',
+      partial_commission: 'partial_commission',
+      user_fees: 'fees'
+    };
+
+    const formField = formFieldMap[type];
+    if (formField) {
+      setFormData(prev => ({
+        ...prev,
+        [formField]: commissions[type][zone] || 0
+      }));
+    }
+  };
+
   const filteredClients = clients.filter(client => 
     client.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -150,6 +225,7 @@ export default function CreateDeliveryPage() {
 
   const handleAddressSelect = (addressId) => {
     setFormData(prev => ({ ...prev, address_id: parseInt(addressId) }));
+    fetchCommissions(addressId);
     fetchAvailableDrivers();
   };
 
@@ -533,6 +609,125 @@ export default function CreateDeliveryPage() {
                   </div>
                 )}
               </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <Label>Commissions & Fees</Label>
+              {Object.keys(commissions.full_commission).length === 1 && 
+               Object.keys(commissions.full_commission)[0] === 'default' && (
+                <Alert className="mb-4">
+                  <AlertCircleIcon />
+                  <AlertDescription>
+                  These are the default restaurant settings values. You can modify them in the restaurant settings.
+                  </AlertDescription>
+                </Alert>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="full_commission">Full Commission</Label>
+                  <div className="space-y-2">
+                    <Select
+                      value={selectedZones.full_commission}
+                      onValueChange={(value) => handleZoneChange('full_commission', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select zone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(commissions.full_commission).map(([zone, value]) => (
+                          <SelectItem key={zone} value={zone}>
+                            {zone === 'default' ? 'Default' : `Zone ${zone}`} ({value}%)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="relative">
+                      <Input
+                        id="full_commission"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.full_commission}
+                        onChange={(e) => setFormData(prev => ({ ...prev, full_commission: parseFloat(e.target.value) || 0 }))}
+                        className="pr-8"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="partial_commission">Partial Commission</Label>
+                  <div className="space-y-2">
+                    <Select
+                      value={selectedZones.partial_commission}
+                      onValueChange={(value) => handleZoneChange('partial_commission', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select zone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(commissions.partial_commission).map(([zone, value]) => (
+                          <SelectItem key={zone} value={zone}>
+                            {zone === 'default' ? 'Default' : `Zone ${zone}`} ({value}%)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="relative">
+                      <Input
+                        id="partial_commission"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.partial_commission}
+                        onChange={(e) => setFormData(prev => ({ ...prev, partial_commission: parseFloat(e.target.value) || 0 }))}
+                        className="pr-8"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fees">Fees</Label>
+                  <div className="space-y-2">
+                    <Select
+                      value={selectedZones.user_fees}
+                      onValueChange={(value) => handleZoneChange('user_fees', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select zone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(commissions.user_fees).map(([zone, value]) => (
+                          <SelectItem key={zone} value={zone}>
+                            {zone === 'default' ? 'Default' : `Zone ${zone}`} (${value})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="relative">
+                      <Input
+                        id="fees"
+                        type="number"
+                        min="0"
+                        value={formData.fees}
+                        onChange={(e) => setFormData(prev => ({ ...prev, fees: parseFloat(e.target.value) || 0 }))}
+                        className="pl-8"
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {loadingCommissions && (
+                <div className="text-sm text-gray-500">
+                  Loading commission data...
+                </div>
+              )}
             </div>
 
             <Separator />
