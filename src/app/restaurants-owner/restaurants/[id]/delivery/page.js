@@ -11,7 +11,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User, Phone, Mail, MapPin, Search, Home, Building2 } from "lucide-react";
+import { User, Phone, Mail, MapPin, Search, Home, Building2, Navigation, CircleDot, Plus, Minus, Clock } from "lucide-react";
+import Image from "next/image";
 
 export default function CreateDeliveryPage() {
   const router = useRouter();
@@ -36,7 +37,9 @@ export default function CreateDeliveryPage() {
   const [clients, setClients] = useState([]);
   const [clientAddresses, setClientAddresses] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [loadingDrivers, setLoadingDrivers] = useState(false);
   const [items, setItems] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(false);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -61,12 +64,7 @@ export default function CreateDeliveryPage() {
     };
 
     fetchClients();
-    // TODO: Replace with actual API calls for drivers and items
-    setDrivers([{ id: 519, name: "Driver 1" }]);
-    setItems([
-      { id: 1, name: "Item 1", price: 10 },
-      { id: 5, name: "Item 2", price: 15 }
-    ]);
+    fetchItems();
   }, []);
 
   const fetchClientAddresses = async (clientId) => {
@@ -90,6 +88,55 @@ export default function CreateDeliveryPage() {
     }
   };
 
+  const fetchAvailableDrivers = async () => {
+    setLoadingDrivers(true);
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/restaurant/${params.id}/available-drivers`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch available drivers');
+      }
+      
+      const data = await response.json();
+      console.log(data.data)
+      setDrivers(data.data);
+    } catch (error) {
+      toast.error('Failed to fetch available drivers: ' + error.message);
+    } finally {
+      setLoadingDrivers(false);
+    }
+  };
+
+  const fetchItems = async () => {
+    setLoadingItems(true);
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/item`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch items');
+      }
+      
+      const data = await response.json();
+      setItems(data.data);
+    } catch (error) {
+      toast.error('Failed to fetch items: ' + error.message);
+    } finally {
+      setLoadingItems(false);
+    }
+  };
+
   const filteredClients = clients.filter(client => 
     client.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -103,6 +150,7 @@ export default function CreateDeliveryPage() {
 
   const handleAddressSelect = (addressId) => {
     setFormData(prev => ({ ...prev, address_id: parseInt(addressId) }));
+    fetchAvailableDrivers();
   };
 
   const handleSubmit = async (e) => {
@@ -113,7 +161,16 @@ export default function CreateDeliveryPage() {
     try {
       // Replace with actual API call
       console.log("Submitting delivery:", formData);
-      router.push(`/restaurants-owner/restaurants/${params.id}`);
+      fetch(`http://127.0.0.1:8000/api/delivery`,{
+        'method': 'POST',
+        'body': JSON.stringify(formData),
+        headers:{
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+      })
+    //   router.push(`/restaurants-owner/restaurants/${params.id}`);
     } catch (err) {
       setError(err.message || "Failed to create delivery");
     } finally {
@@ -121,23 +178,41 @@ export default function CreateDeliveryPage() {
     }
   };
 
-  const handleItemChange = (itemId, quantity) => {
+  const handleItemQuantityChange = (itemId, change) => {
     setFormData(prev => {
       const existingItem = prev.items.find(item => item.id === itemId);
+      const newQuantity = (existingItem?.quantity || 0) + change;
+      
+      if (newQuantity <= 0) {
+        return {
+          ...prev,
+          items: prev.items.filter(item => item.id !== itemId)
+        };
+      }
+
       if (existingItem) {
         return {
           ...prev,
           items: prev.items.map(item =>
-            item.id === itemId ? { ...item, quantity } : item
+            item.id === itemId ? { ...item, quantity: newQuantity } : item
           )
         };
       }
+
       return {
         ...prev,
-        items: [...prev.items, { id: itemId, quantity }]
+        items: [...prev.items, { id: itemId, quantity: newQuantity }]
       };
     });
   };
+
+  const getItemQuantity = (itemId) => {
+    return formData.items.find(item => item.id === itemId)?.quantity || 0;
+  };
+
+  const filteredItems = items.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -279,46 +354,184 @@ export default function CreateDeliveryPage() {
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="driver">Driver</Label>
-                <Select
-                  value={formData.driver_id.toString()}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, driver_id: parseInt(value) }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a driver" />
-                  </SelectTrigger>
-                  <SelectContent>
+              {formData.client_id && formData.address_id && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Available Drivers</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={fetchAvailableDrivers}
+                      disabled={loadingDrivers}
+                    >
+                      {loadingDrivers ? "Refreshing..." : "Refresh Drivers"}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
                     {drivers.map(driver => (
-                      <SelectItem key={driver.id} value={driver.id.toString()}>
-                        {driver.name}
-                      </SelectItem>
+                      <div
+                        key={driver.id}
+                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                          formData.driver_id === driver.id
+                            ? 'border-primary bg-primary/5'
+                            : 'hover:border-primary/50'
+                        }`}
+                        onClick={() => setFormData(prev => ({ ...prev, driver_id: driver.id }))}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="relative">
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
+                              {driver.user.image ? (
+                                <img
+                                  src={driver.user.image}
+                                  alt={driver.user.name}
+                                  className="object-cover w-full h-full"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                                  <User className="h-6 w-6 text-primary" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute -bottom-1 -right-1">
+                              <div className={`w-3 h-3 rounded-full border-2 border-white ${
+                                driver.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                              }`} />
+                            </div>
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <div>
+                              <h3 className="font-semibold">{driver.user.name}</h3>
+                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <span className="capitalize">{driver.type.replace('_', ' ')}</span>
+                                <span>•</span>
+                                <span className="capitalize">{driver.status}</span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-gray-400" />
+                                <span className="text-gray-600">{driver.user.phone}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-4 w-4 text-gray-400" />
+                                <span className="text-gray-600">{driver.user.email}</span>
+                              </div>
+                            </div>
+                            {driver.distance_to_restaurant && (
+                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <Navigation className="h-4 w-4" />
+                                <span>{driver.distance_to_restaurant.toFixed(1)} km from restaurant</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                    {drivers.length === 0 && !loadingDrivers && (
+                      <div className="p-4 border rounded-lg text-center text-gray-500">
+                        No drivers available at the moment
+                      </div>
+                    )}
+                    {loadingDrivers && (
+                      <div className="p-4 border rounded-lg text-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <Separator />
 
             <div className="space-y-4">
-              <Label>Items</Label>
+              <div className="flex items-center justify-between">
+                <Label>Items</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchItems}
+                  disabled={loadingItems}
+                >
+                  {loadingItems ? "Refreshing..." : "Refresh Items"}
+                </Button>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search items..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {items.map(item => (
-                  <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-muted-foreground">${item.price}</p>
+                {filteredItems.map(item => (
+                  <div key={item.id} className="flex items-start gap-4 p-4 border rounded-lg">
+                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                          <span className="text-2xl text-primary">🍽️</span>
+                        </div>
+                      )}
                     </div>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.items.find(i => i.id === item.id)?.quantity || 0}
-                      onChange={(e) => handleItemChange(item.id, parseInt(e.target.value))}
-                      className="w-20"
-                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-semibold truncate">{item.name}</h3>
+                          <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
+                          {item.prep_time && (
+                            <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                              <Clock className="h-4 w-4" />
+                              <span>{item.prep_time} min</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleItemQuantityChange(item.id, -1)}
+                            disabled={getItemQuantity(item.id) === 0}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="w-8 text-center">{getItemQuantity(item.id)}</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleItemQuantityChange(item.id, 1)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
+                {filteredItems.length === 0 && !loadingItems && (
+                  <div className="col-span-2 p-4 border rounded-lg text-center text-gray-500">
+                    No items found
+                  </div>
+                )}
+                {loadingItems && (
+                  <div className="col-span-2 p-4 border rounded-lg text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  </div>
+                )}
               </div>
             </div>
 
