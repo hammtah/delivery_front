@@ -136,8 +136,8 @@ export default function NewWorkingHoursPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-8 max-w-[1000px] mx-auto">
-        <div className="flex items-center gap-4 mb-8">
+      <div className="p-4 md:p-8 max-w-[1000px] mx-auto lg:ml-[280px]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
           <Button
             variant="ghost"
             onClick={() => router.back()}
@@ -147,12 +147,12 @@ export default function NewWorkingHoursPage() {
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">New Working Hours Program</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">New Working Hours Program</h1>
             <p className="text-gray-500 mt-1">Create a new schedule for your restaurant</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
           {/* Basic Information */}
           <Card>
             <CardHeader className="flex flex-row items-center gap-2">
@@ -173,17 +173,19 @@ export default function NewWorkingHoursPage() {
               </div>
               <div className="space-y-2">
                 <Label>Active Period</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center items-center">
+                  <div  className='flex flex-row gap-4 justify-between items-center w-[50%]'>
                     <Label>From</Label>
                     <DateTimePicker24h
+                      className='w-full'
                       value={activeFrom}
                       onChange={handleActiveFromChange}
                     />
                   </div>
-                  <div>
+                  <div className='flex flex-row gap-4 justify-between items-center w-[50%]'>
                     <Label>To</Label>
                     <DateTimePicker24h
+                      className='w-full'
                       value={activeTo}
                       onChange={handleActiveToChange}
                     />
@@ -195,7 +197,7 @@ export default function NewWorkingHoursPage() {
 
           {/* Working Days Summary */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-blue-500" />
                 <h2 className="text-xl font-semibold text-gray-800">Working Days</h2>
@@ -206,7 +208,7 @@ export default function NewWorkingHoursPage() {
               <Button
                 type="button"
                 onClick={addWorkingDay}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto"
               >
                 <Plus className="h-4 w-4" />
                 Add Day
@@ -248,17 +250,19 @@ export default function NewWorkingHoursPage() {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => router.back()}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
+              className="w-full sm:w-auto"
             >
               {loading ? 'Creating...' : 'Create Program'}
             </Button>
@@ -274,9 +278,9 @@ export default function NewWorkingHoursPage() {
       </div>
 
       {/* Sidebar for managing days */}
-      <div className={`fixed inset-y-0 right-0 w-[500px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="h-full flex flex-col">
-          <div className="p-6 border-b flex items-center justify-between">
+          <div className="p-4 sm:p-6 border-b flex items-center justify-between">
             <h3 className="text-lg font-semibold">Manage Working Day</h3>
             <Button
               variant="ghost"
@@ -287,12 +291,12 @@ export default function NewWorkingHoursPage() {
             </Button>
           </div>
           
-          <ScrollArea className="flex-1 p-6">
+          <ScrollArea className="flex-1 p-4 sm:p-6">
             {selectedDayIndex !== null && (
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <div className="flex gap-4 items-center flex-wrap">
-                    <div className="flex-1 min-w-[200px]">
+                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                    <div className="w-full sm:flex-1">
                       <Label>Day of Week</Label>
                       <Select
                         value={newProgram.working_days[selectedDayIndex].eday}
@@ -312,8 +316,8 @@ export default function NewWorkingHoursPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <span className="text-gray-500 font-medium">OR</span>
-                    <div className="flex-1 min-w-[200px]">
+                    <span className="text-gray-500 font-medium hidden sm:block">OR</span>
+                    <div className="w-full sm:flex-1">
                       <Label>Special Date</Label>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -368,33 +372,37 @@ export default function NewWorkingHoursPage() {
 
                   <div className="space-y-3">
                     {newProgram.working_days[selectedDayIndex].times.map((time, timeIndex) => (
-                      <div key={timeIndex} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border">
-                        <Clock className="h-5 w-5 text-gray-400" />
-                        <TimePicker
-                          value={time.start}
-                          onChange={(timeString) => {
-                            const updatedDays = [...newProgram.working_days];
-                            updatedDays[selectedDayIndex].times[timeIndex].start = timeString;
-                            setNewProgram(prev => ({ ...prev, working_days: updatedDays }));
-                          }}
-                          label="Start Time"
-                        />
-                        <span className="text-gray-500 font-medium">to</span>
-                        <TimePicker
-                          value={time.end}
-                          onChange={(timeString) => {
-                            const updatedDays = [...newProgram.working_days];
-                            updatedDays[selectedDayIndex].times[timeIndex].end = timeString;
-                            setNewProgram(prev => ({ ...prev, working_days: updatedDays }));
-                          }}
-                          label="End Time"
-                        />
+                      <div key={timeIndex} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-gray-50 p-3 rounded-lg border">
+                        <Clock className="h-5 w-5 text-gray-400 hidden sm:block" />
+                        <div className="w-full sm:w-auto">
+                          <TimePicker
+                            value={time.start}
+                            onChange={(timeString) => {
+                              const updatedDays = [...newProgram.working_days];
+                              updatedDays[selectedDayIndex].times[timeIndex].start = timeString;
+                              setNewProgram(prev => ({ ...prev, working_days: updatedDays }));
+                            }}
+                            label="Start Time"
+                          />
+                        </div>
+                        <span className="text-gray-500 font-medium hidden sm:block">to</span>
+                        <div className="w-full sm:w-auto">
+                          <TimePicker
+                            value={time.end}
+                            onChange={(timeString) => {
+                              const updatedDays = [...newProgram.working_days];
+                              updatedDays[selectedDayIndex].times[timeIndex].end = timeString;
+                              setNewProgram(prev => ({ ...prev, working_days: updatedDays }));
+                            }}
+                            label="End Time"
+                          />
+                        </div>
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
                           onClick={() => removeTimeSlot(selectedDayIndex, timeIndex)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 ml-auto"
                         >
                           <Trash2 className="h-5 w-5" />
                         </Button>
@@ -406,7 +414,7 @@ export default function NewWorkingHoursPage() {
             )}
           </ScrollArea>
 
-          <div className="p-6 border-t">
+          <div className="p-4 sm:p-6 border-t">
             <Button
               type="button"
               variant="destructive"

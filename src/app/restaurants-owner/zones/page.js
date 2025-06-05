@@ -31,7 +31,7 @@ const MapComponent = dynamic(() => import('@/components/MapComponent'), {
 // Map Preview Component
 const ZoneMapPreview = ({ zone }) => {
   return (
-    <div className="h-[300px] w-full relative rounded-t-lg overflow-hidden">
+    <div className="h-[300px] w-full relative rounded-t-lg overflow-hidden z-1">
       <MapComponent 
         key={zone.id}
         initialZoneData={zone}
@@ -120,9 +120,9 @@ export default function ZonesDashboard() {
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-4 pl-[280px]">
+    <div className="container mx-auto p-4 space-y-4 lg:pl-[280px] md:pl-[240px] ">
       {/* Header with Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-3 sm:grid-cols-3 gap-4  ">
         <Card className="p-4">
           <h3 className="text-sm font-medium text-gray-500">Total Zones</h3>
           <p className="text-2xl font-bold">{zones.length}</p>
@@ -142,7 +142,7 @@ export default function ZonesDashboard() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex gap-2 w-full md:w-auto">
           <Input
             placeholder="Search zones..."
@@ -151,22 +151,22 @@ export default function ZonesDashboard() {
             className="w-full md:w-[300px]"
           />
           <Select value={statusFilter} onValueChange={handleStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
+            <SelectContent className='z-10'>
+              <SelectItem value="all" className='z-10'>All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div className="flex gap-2  ">
-          <Link href="/restaurants-owner/zones/create" className='order-last'>
+        <div className="flex gap-2 sm:w-auto flex-wrap w-full justify-between items-center md:justify-end">
+          <Link href="/restaurants-owner/zones/create" className='order-last flex-grow-1'>
             <Button
               variant="outline"
-              className=""
+              className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create New Zone
@@ -191,8 +191,8 @@ export default function ZonesDashboard() {
       </div>
 
       {/* Main Content - List View */}
-      <div className="h-[600px] relative">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4  h-full">
+      <div className="relative">
+        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4  h-full">
           {filteredZones.map((zone) => (
             <Card key={zone.id} className=" hover:shadow-lg transition-all duration-300 py-0">
               <ZoneMapPreview zone={zone} />
