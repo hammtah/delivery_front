@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import Loading from '@/components/loading';
+import { getApiUrl } from '@/utils/api';
+
 export default function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +25,7 @@ if(localStorage.getItem('token')==null){
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/restaurant',
+        const response = await fetch(getApiUrl('/api/restaurant'),
             {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -158,4 +160,4 @@ if(localStorage.getItem('token')==null){
       </div>
     </div>
   );
-} 
+}

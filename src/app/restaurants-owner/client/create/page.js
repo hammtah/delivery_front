@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { FanIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { getApiUrl } from '@/utils/api';
 
 export default function MapPage() {
 
@@ -73,7 +75,7 @@ export default function MapPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/client', {
+            const response = await fetch(getApiUrl('/api/client'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

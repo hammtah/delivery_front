@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { User, Phone, Mail, MapPin, Search, Home, Building2, Navigation, CircleDot, Plus, Minus, Clock, AlertCircleIcon, Check } from "lucide-react";
 import Image from "next/image";
+import { getApiUrl } from '@/utils/api';
 
 export default function CreateDeliveryPage() {
   const router = useRouter();
@@ -131,7 +132,7 @@ export default function CreateDeliveryPage() {
   const fetchClientAddresses = async (clientId) => {
     setLoadingAddresses(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/client/${clientId}`, {
+      const response = await fetch(getApiUrl(`/api/client/${clientId}`), {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -155,7 +156,7 @@ export default function CreateDeliveryPage() {
   const fetchAvailableDrivers = async () => {
     setLoadingDrivers(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/restaurant/${params.id}/available-drivers`, {
+      const response = await fetch(getApiUrl(`/api/restaurant/${params.id}/available-drivers`), {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -184,7 +185,7 @@ export default function CreateDeliveryPage() {
   const fetchItems = async () => {
     setLoadingItems(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/item`, {
+      const response = await fetch(getApiUrl('/api/item'), {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -208,7 +209,7 @@ export default function CreateDeliveryPage() {
   const fetchCommissions = async (addressId) => {
     setLoadingCommissions(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/restaurant/${params.id}/address/${addressId}/commission`, {
+      const response = await fetch(getApiUrl(`/api/restaurant/${params.id}/address/${addressId}/commission`), {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',

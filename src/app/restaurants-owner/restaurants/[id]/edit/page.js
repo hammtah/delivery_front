@@ -7,6 +7,8 @@ import RestaurantForm from '../../create-restaurant/components/RestaurantForm';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { redirect } from 'next/navigation';
+import { toast } from 'sonner';
+import { getApiUrl } from '@/utils/api';
 
 if(localStorage.getItem('token')==null){
     redirect('/restaurants/login')
@@ -55,7 +57,7 @@ const EditRestaurantPage = ({ params }) => {
     const fetchRestaurant = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://127.0.0.1:8000/api/restaurant/${params.id}`, {
+        const response = await fetch(getApiUrl(`/api/restaurant/${params.id}`), {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
@@ -89,7 +91,6 @@ const EditRestaurantPage = ({ params }) => {
           // Set city query
           setCityQuery(restaurant.address.city);
           //handle location
-        //   console.log(formData)
           handleLocationSelect([restaurant.address.geoPosition.latitude, restaurant.address.geoPosition.longitude], restaurant.address);
 
         } else {
@@ -218,10 +219,9 @@ const EditRestaurantPage = ({ params }) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    //update
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/restaurant/${params.id}`, {
+      const response = await fetch(getApiUrl(`/api/restaurant/${params.id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

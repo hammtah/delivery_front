@@ -8,6 +8,7 @@ import { MapPin, Mail, Phone, User, Package, Navigation, ChevronLeft, ChevronRig
 import { toast } from "sonner"
 import Link from 'next/link';
 import { Button } from "@/components/ui/button"
+import { getApiUrl } from '@/utils/api';
 
 export default function ClientDetailsPage() {
     const params = useParams();
@@ -21,7 +22,7 @@ export default function ClientDetailsPage() {
 
     const fetchClientDetails = async () => {
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/client/${params.id}`, {
+            const response = await fetch(getApiUrl(`/api/client/${params.id}`), {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',

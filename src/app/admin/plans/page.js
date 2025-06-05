@@ -41,6 +41,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import {Toaster} from "@/components/ui/sonner"
+import { useRouter } from 'next/navigation'
+import { getApiUrl } from '@/utils/api'
 
 function TableSkeleton() {
   return (
@@ -78,10 +80,12 @@ export default function PlansPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [planToDelete, setPlanToDelete] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+
   const fetchPlans = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://127.0.0.1:8000/api/plan', {
+      const response = await fetch(getApiUrl('/api/plan'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -102,7 +106,7 @@ export default function PlansPage() {
 
   const handleCreatePlan = async (formData) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/plan', {
+      const response = await fetch(getApiUrl('/api/plan'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,13 +115,11 @@ export default function PlansPage() {
         },
         body: JSON.stringify({
           ...formData,
-        //   admin_id: 1 
         })
       })
 
       if (response.ok) {
         setIsFormOpen(false)
-        // Toaster.success('Plan created successfully')
         toast(`Plan ${formData.name} created successfully`, {
           icon: '🎉'
         })
@@ -133,7 +135,7 @@ export default function PlansPage() {
 
   const handleUpdatePlan = async (formData) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/plan/${selectedPlan.id}`, {
+      const response = await fetch(`${getApiUrl('/api/plan')}/${selectedPlan.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -161,7 +163,7 @@ export default function PlansPage() {
 
   const handleDeletePlan = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/plan/${planToDelete.id}`, {
+      const response = await fetch(`${getApiUrl('/api/plan')}/${planToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

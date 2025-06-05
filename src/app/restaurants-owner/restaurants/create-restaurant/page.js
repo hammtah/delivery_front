@@ -7,6 +7,8 @@ import RestaurantForm from './components/RestaurantForm';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { redirect } from 'next/navigation';
+import { toast } from 'sonner';
+import { getApiUrl } from '@/utils/api';
 if(localStorage.getItem('token')==null){
     redirect('/restaurants/login')
   }
@@ -233,7 +235,7 @@ const CreateRestaurantPage = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/restaurant', {
+      const response = await fetch(getApiUrl('/api/restaurant'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

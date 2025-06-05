@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import MapComponent from '@/components/MapComponent';
+import { getApiUrl } from '@/utils/api';
 
 export default function CreateAddressPage({ params }) {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function CreateAddressPage({ params }) {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/client/${params.id}/add-address`, {
+      const response = await fetch(getApiUrl(`/api/client/${params.id}/add-address`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

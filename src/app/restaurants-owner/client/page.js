@@ -7,6 +7,7 @@ import { MapPin, Mail, Phone, User, Plus, Eye, Pencil, Trash2, Navigation, Map, 
 import Link from 'next/link'
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
+import { getApiUrl } from '@/utils/api';
 import {
     Dialog,
     DialogContent,
@@ -31,7 +32,7 @@ export default function ClientsPage() {
 
     const fetchClients = async () => {
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/client', {
+            const response = await fetch(getApiUrl('/api/client'), {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
@@ -59,7 +60,7 @@ export default function ClientsPage() {
 
     const handleDelete = async () => {
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/client/${clientToDelete.id}`, {
+            const response = await fetch(getApiUrl(`/api/client/${clientToDelete.id}`), {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

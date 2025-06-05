@@ -43,6 +43,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Loading from "@/components/loading";
+import { getApiUrl } from '@/utils/api';
+
 export default function ItemsPage() {
   const [restaurants, setRestaurants] = useState([]);
   const [items, setItems] = useState([]);
@@ -71,7 +73,7 @@ export default function ItemsPage() {
   const fetchRestaurants = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/api/restaurant", {
+      const response = await fetch(getApiUrl("/api/restaurant"), {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -88,7 +90,7 @@ export default function ItemsPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/api/item", {
+      const response = await fetch(getApiUrl("/api/item"), {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -137,7 +139,7 @@ export default function ItemsPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://127.0.0.1:8000/api/item/${itemToDelete.id}`, {
+      const response = await fetch(getApiUrl(`/api/item/${itemToDelete.id}`), {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -171,8 +173,8 @@ export default function ItemsPage() {
     try {
       const token = localStorage.getItem("token");
       const url = editingItem 
-        ? `http://127.0.0.1:8000/api/item/${editingItem.id}`
-        : "http://127.0.0.1:8000/api/item";
+        ? getApiUrl(`/api/item/${editingItem.id}`)
+        : getApiUrl("/api/item");
       
       const response = await fetch(url, {
         method: editingItem ? "PUT" : "POST",

@@ -20,6 +20,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { getApiUrl } from '@/utils/api';
 // import { headers } from 'next/headers';
 
 // Dynamically import the map component to avoid SSR issues
@@ -69,7 +72,7 @@ export default function ZonesDashboard() {
   const fetchZones = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://127.0.0.1:8000/api/zone', {
+      const response = await fetch(getApiUrl('/api/zone'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json',

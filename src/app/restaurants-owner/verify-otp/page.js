@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
+import { getApiUrl } from '@/utils/api';
 
 export default function VerifyOTPPage() {
     const router = useRouter();
@@ -102,7 +103,7 @@ export default function VerifyOTPPage() {
         setLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/verify-otp', {
+            const response = await fetch(getApiUrl('/api/verify-otp'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

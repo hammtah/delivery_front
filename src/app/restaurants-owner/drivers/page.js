@@ -11,6 +11,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Mail, Phone } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { getApiUrl } from '@/utils/api';
 
 const statusColors = {
   online: 'bg-green-700',
@@ -34,6 +37,8 @@ export default function DriversPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [driverToSuspend, setDriverToSuspend] = useState(null);
+  const router = useRouter();
+
   useEffect(() => {
     fetchDrivers();
   }, []);
@@ -119,14 +124,12 @@ export default function DriversPage() {
     );
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/driver/${driverId}/availability`, {
-        method: 'PUT', // Assuming POST based on previous endpoint usage
+      const response = await fetch(getApiUrl(`/api/driver/${driverId}/availability`), {
+        method: 'PUT',
         headers: {
           'Accept': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem("token")}`
         },
-        // You might need a body here depending on the API definition,
-        // e.g., body: JSON.stringify({ is_online: isOnline })
       });
 
       if (!response.ok) {
