@@ -14,10 +14,14 @@ import {
   Receipt,
   Package,
   LayoutDashboard,
-  Hamburger
+  Hamburger,
+  Menu,
+  X
 } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const sidebarItems = [
   {
@@ -75,23 +79,56 @@ const sidebarItems = [
     href: '/restaurants-owner/invoices',
     icon: <Receipt className="w-5 h-5" />
   },
-
 ];
+
+const SidebarContent = ({ user, pathname }) => (
+  <>
+    {/* Profile Section */}
+    <div className="flex items-center gap-3 px-6 py-6 border-b border-gray-100">
+      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-50">
+        <Image src={`https://avatar.iran.liara.run/public/${user.id%83}`} alt="User Avatar" width={48} height={48} />
+      </div>
+      <div className="flex flex-col">
+        <span className="font-semibold text-gray-800 leading-tight text-base">{user.name}</span>
+        <span className="text-xs text-gray-500 leading-tight">{user.email}</span>
+      </div>
+    </div>
+    {/* Sidebar Navigation */}
+    <div className="p-4 flex-1">
+      <nav className="space-y-1 flex flex-col gap-2">
+        {sidebarItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link 
+              key={item.href}
+              href={item.href}
+              className={`flex items-center px-[12px] py-[12px] text-sm font-medium rounded-md transition-colors ${
+                isActive
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <span className="mr-3">{item.icon}</span>
+              {item.title}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  </>
+);
 
 export default function RestaurantOwnerSidebar() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
   // State for user data
   const [user, setUser] = useState({
-    id:null,
+    id: null,
     name: '',
     email: '',
   });
 
-  // Generate DiceBear avatar URL
-  const avatarSeed = user.name || user.email || 'default';
-//   let avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(avatarSeed)}`;
-  const avatarUrl = `https://avatar.iran.liara.run/public/${user.id%83}`
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem('user');
@@ -110,48 +147,34 @@ export default function RestaurantOwnerSidebar() {
     }
   }, []);
 
-  return (
-    <div className="w-64 h-screen bg-white border-r border-gray-200 fixed left-0 top-0 flex flex-col">
-      {/* Profile Section */}
-      <div className="flex items-center gap-3 px-6 py-6 border-b border-gray-100">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-50">
-          <Image src={`https://avatar.iran.liara.run/public/${user.id%83}`} alt="User Avatar" width={48} height={48} />
-          <img
-    // src={avatarUrl}
-    // alt="User Avatar"
-    // width={48}
-    // height={48}
-    // className="w-12 h-12 rounded-full"
-  />
-        </div>
-        <div className="flex flex-col">
-          <span className="font-semibold text-gray-800 leading-tight text-base">{user.name}</span>
-          <span className="text-xs text-gray-500 leading-tight">{user.email}</span>
-        </div>
-      </div>
-      {/* Sidebar Navigation */}
-      <div className="p-4 flex-1">
-        <nav className="space-y-1 flex flex-col gap-2">
-          {sidebarItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link 
-                key={item.href}
-                href={item.href}
-                className={`flex items-center px-[12px] py-[12px] text-sm font-medium rounded-md transition-colors ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                <span className="mr-3">{item.icon}</span>
-                {item.title}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+  // Desktop sidebar
+  const DesktopSidebar = (
+    <div className="hidden md:flex w-64 h-screen bg-white border-r border-gray-200 fixed left-0 top-0 flex-col">
+      <SidebarContent user={user} pathname={pathname} />
     </div>
   );
-};
+
+  // Mobile sidebar
+  const MobileSidebar = (
+    <div className="md:hidden">
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
+            <Menu className="h-6 w-6" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="p-0 w-64">
+          <SidebarContent user={user} pathname={pathname} />
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+
+  return (
+    <>
+      {DesktopSidebar}
+      {MobileSidebar}
+    </>
+  );
+}
 

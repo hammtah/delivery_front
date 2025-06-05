@@ -179,49 +179,47 @@ export default function DriversPage() {
   }
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Drivers</h1>
-        <p className="text-gray-600">Manage all delivery drivers on the platform</p>
+    <div className="p-4 sm:p-6 md:p-8 max-w-[1200px] mx-auto md:ml-64">
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Drivers</h1>
+        <p className="text-sm sm:text-base text-gray-600">Manage all delivery drivers on the platform</p>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="w-full sm:w-auto flex items-center gap-4">
           <Input
             placeholder="Search drivers..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
+            className="w-full sm:max-w-sm"
           />
-          {/* Placeholder for actual filtering/sorting controls */}
         </div>
-        <Link href="/restaurants-owner/drivers/create">
-          <Button>
+        <Link href="/restaurants-owner/drivers/create" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             + Add Driver
           </Button>
         </Link>
       </div>
 
       {/* Placeholder Tabs for filtering */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6 md:mb-8">
+        <TabsList className="w-full sm:w-auto">
           <TabsTrigger value="all">All Drivers</TabsTrigger>
           <TabsTrigger value="online">Active</TabsTrigger>
           <TabsTrigger value="suspended">Suspended</TabsTrigger>
           <TabsTrigger value="offline">Inactive</TabsTrigger>
-           {/* Add other statuses like 'busy' if needed */}
         </TabsList>
       </Tabs>
 
       {filteredDrivers.length === 0 ? (
-        <div className='flex flex-col items-center justify-center mt-16'>
-          <Image src='/no_driver.png' alt='empty' width={100} height={100} className='w-64 h-32 object-contain' />
-          <h1 className='text-2xl font-bold text-gray-800 mt-4'>No drivers found</h1>
+        <div className='flex flex-col items-center justify-center mt-8 md:mt-16'>
+          <Image src='/no_driver.png' alt='empty' width={100} height={100} className='w-48 md:w-64 h-24 md:h-32 object-contain' />
+          <h1 className='text-xl md:text-2xl font-bold text-gray-800 mt-4'>No drivers found</h1>
           {drivers.length > 0 && <p className='text-gray-600 text-sm mb-4'>Adjust your search or filters.</p>}
           {drivers.length === 0 && <p className='text-gray-600 text-sm mb-4'>Please add a driver to get started</p>}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredDrivers.map((driver) => (
             <Card key={driver.id} className="overflow-hidden hover:shadow-lg transition-shadow relative">
               <div className="p-6 flex items-center gap-4">

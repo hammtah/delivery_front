@@ -216,9 +216,9 @@ export default function ItemsPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 w-[70%]">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Items Management</h1>
+    <div className="p-4 sm:p-6 md:p-8 ml-0 md:ml-64 max-w-[1200px] mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold">Items Management</h1>
         <Dialog open={open} onOpenChange={(isOpen) => {
           setOpen(isOpen);
           if (!isOpen) {
@@ -236,12 +236,12 @@ export default function ItemsPage() {
           <DialogTrigger asChild>
             <Button>Create Item</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-[90vw] sm:max-w-2xl sm:max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingItem ? "Edit Item" : "Create New Item"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Item Name</Label>
                   <Input
@@ -302,9 +302,9 @@ export default function ItemsPage() {
                 </div>
               </div>
 
-              <div className="space-y-4 ">
+              <div className="space-y-4">
                 <Label>Select Restaurants</Label>
-                <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto min-h-[100px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto min-h-[100px]">
                   {restaurants.map((restaurant) => (
                     <div key={restaurant.id} className="flex items-center space-x-2">
                       <Checkbox
@@ -345,7 +345,7 @@ export default function ItemsPage() {
         </Dialog>
       </div>
 
-      <Card>
+      <Card className="w-full overflow-x-auto">
         <CardHeader>
           <CardTitle>Items List</CardTitle>
         </CardHeader>
@@ -355,74 +355,108 @@ export default function ItemsPage() {
           ) : items.length === 0 ? (
             <p className="text-muted-foreground">No items found</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Prep Time</TableHead>
-                  <TableHead>Restaurants</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <div className="space-y-4">
+              {/* Mobile/Tablet View */}
+              <div className="md:hidden space-y-4">
                 {items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>
-                      <div className="w-10 h-10 rounded-full overflow-hidden">
-                        <img src={item.image ? item.image : "/item_placeholder.png"} alt={"_"} className="w-full h-full object-cover" />
+                  <Card key={item.id} className="cursor-pointer" onClick={() => handleEdit(item)}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                          <img 
+                            src={item.image ? item.image : "/item_placeholder.png"} 
+                            alt={item.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium">{item.name}</h3>
+                          <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                          <Badge
+                            variant={item.status === "available" ? "default" : "secondary"}
+                            className="mt-1"
+                          >
+                            {item.status}
+                          </Badge>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>${item.price.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={item.status === "available" ? "default" : "secondary"}
-                      >
-                        {item.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{item.prep_time ? item.prep_time + " min" : "N/A"}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {item.restaurants.length > 0 ? (
-                          item.restaurants.map((restaurant) => (
-                            <Badge key={restaurant.id} variant="outline">
-                              {restaurant.name}
-                            </Badge>
-                          ))
-                        ) : (
-                          'N/A'
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setItemToDelete(item);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                    </CardContent>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+
+              {/* Desktop View */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="whitespace-nowrap">Name</TableHead>
+                      <TableHead className="whitespace-nowrap">Image</TableHead>
+                      <TableHead className="whitespace-nowrap">Price</TableHead>
+                      <TableHead className="whitespace-nowrap">Status</TableHead>
+                      <TableHead className="whitespace-nowrap">Prep Time</TableHead>
+                      <TableHead className="whitespace-nowrap">Restaurants</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell>
+                          <div className="w-10 h-10 rounded-full overflow-hidden">
+                            <img src={item.image ? item.image : "/item_placeholder.png"} alt={item.name} className="w-full h-full object-cover" />
+                          </div>
+                        </TableCell>
+                        <TableCell>${item.price.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={item.status === "available" ? "default" : "secondary"}
+                          >
+                            {item.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{item.prep_time ? item.prep_time + " min" : "N/A"}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {item.restaurants.length > 0 ? (
+                              item.restaurants.map((restaurant) => (
+                                <Badge key={restaurant.id} variant="outline">
+                                  {restaurant.name}
+                                </Badge>
+                              ))
+                            ) : (
+                              'N/A'
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(item)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setItemToDelete(item);
+                                setDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

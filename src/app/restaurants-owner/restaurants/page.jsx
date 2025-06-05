@@ -70,29 +70,29 @@ if(localStorage.getItem('token')==null){
   }
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">My Restaurants</h1>
+    <div className="p-4 sm:p-6 md:p-8 ml-0 md:ml-64 max-w-[1200px] mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">My Restaurants</h1>
         <Link href="/restaurants-owner/restaurants/create-restaurant" >
-          <Button variant='' >
+          <Button variant='' className="w-full sm:w-auto">
             Add New Restaurant
           </Button>
         </Link>
       </div>
       {restaurants.length === 0 && (
-      <div className='flex flex-col items-center justify-center mt-32'>
-        <Image src='/no_restaurant.png' alt='empty' width={100} height={100} className='w-64 h-32' />
-        <h1 className='text-2xl font-bold text-gray-800'>No restaurants found</h1>
-        <p className='text-gray-600 text-sm mb-4 line-clamp-2'>Please create a restaurant to get started</p>
+      <div className='flex flex-col items-center justify-center mt-16 sm:mt-32'>
+        <Image src='/no_restaurant.png' alt='empty' width={100} height={100} className='w-48 sm:w-64 h-24 sm:h-32' />
+        <h1 className='text-xl sm:text-2xl font-bold text-gray-800 mt-4'>No restaurants found</h1>
+        <p className='text-gray-600 text-sm mb-4 text-center max-w-md'>Please create a restaurant to get started</p>
       </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {restaurants.map((restaurant) => (
           <div
             key={restaurant.id}
             className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative pb-4"
           >
-            <div className="relative h-48">
+            <div className="relative h-40 sm:h-48">
               <img
                 src={restaurant.image || '/restaurant_placeholder.png'}
                 alt={restaurant.name}
@@ -101,8 +101,8 @@ if(localStorage.getItem('token')==null){
               />
             </div>
 
-            <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            <div className="p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                 {restaurant.name}
               </h2>
               <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -117,7 +117,7 @@ if(localStorage.getItem('token')==null){
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 ">
+                <div className="flex items-center gap-2">
                   <GlowingHeartCircle size="12px" color={`${restaurant.status === 'active' ? 'green' : 'red'}`}/>
                   <span className="text-sm font-medium text-gray-600">
                     {restaurant.status}
@@ -126,27 +126,27 @@ if(localStorage.getItem('token')==null){
               </div>
 
               <div className="mt-4 flex justify-end items-center absolute bottom-4 right-4 cursor-pointer">
-                <DropdownMenu >
+                <DropdownMenu>
                   <DropdownMenuTrigger className="focus:outline-none cursor-pointer">
                     <MoreVertical className="h-5 w-5 text-gray-500 hover:text-gray-700" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-48">
                     <Link href={`/restaurants-owner/restaurants/${restaurant.id}/edit`}>
-                        <DropdownMenuItem className='cursor-pointer '>
-                        <Pencil className='w-4 h-4' /> Edit
-                        </DropdownMenuItem>
+                      <DropdownMenuItem className='cursor-pointer'>
+                        <Pencil className='w-4 h-4 mr-2' /> Edit
+                      </DropdownMenuItem>
                     </Link>
-                    <DropdownMenuItem className='cursor-pointer '>
-                     <Trash className='w-4 h-4' /> Delete
+                    <DropdownMenuItem className='cursor-pointer'>
+                      <Trash className='w-4 h-4 mr-2' /> Delete
                     </DropdownMenuItem>
                     <Link href={`/restaurants-owner/restaurants/${restaurant.id}/working-hours`}>
                       <DropdownMenuItem className='cursor-pointer'>
-                        <CalendarClock className='w-4 h-4' /> Working Hours
+                        <CalendarClock className='w-4 h-4 mr-2' /> Working Hours
                       </DropdownMenuItem>
                     </Link>
                     <Link href={`/restaurants-owner/restaurants/${restaurant.id}/delivery`}>
                       <DropdownMenuItem className='cursor-pointer'>
-                        <Truck className='w-4 h-4' /> Delivery
+                        <Truck className='w-4 h-4 mr-2' /> Delivery
                       </DropdownMenuItem>
                     </Link>
                   </DropdownMenuContent>
