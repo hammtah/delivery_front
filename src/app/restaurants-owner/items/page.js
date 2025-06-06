@@ -73,6 +73,7 @@ export default function ItemsPage() {
   const fetchRestaurants = async () => {
     try {
       const token = localStorage.getItem("token");
+      console.log(getApiUrl("/api/restaurant"));
       const response = await fetch(getApiUrl("/api/restaurant"), {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -45,7 +45,7 @@ export default function DriversPage() {
 
   const fetchDrivers = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/driver', {
+      const response = await fetch(getApiUrl('/api/driver'), {
         headers: {
           'Accept': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem("token")}`
@@ -69,7 +69,7 @@ export default function DriversPage() {
   const handleConfirmSuspend = async () => {
     if (!driverToSuspend) return;
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/driver/${driverToSuspend.id}/suspend`, {
+      const response = await fetch(`${getApiUrl('/api/driver/')}${driverToSuspend.id}/suspend`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -94,7 +94,7 @@ export default function DriversPage() {
 
   const unsuspend = async (driver) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/driver/${driver.id}/unsuspend`, {
+      const response = await fetch(`${getApiUrl('/api/driver/')}${driver.id}/unsuspend`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',

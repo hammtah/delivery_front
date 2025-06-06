@@ -104,7 +104,7 @@ export default function CreateDeliveryPage() {
     const fetchClients = async () => {
       setLoadingClients(true);
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/client', {
+        const response = await fetch(getApiUrl('/api/client'), {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -292,7 +292,7 @@ export default function CreateDeliveryPage() {
     setError("");
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/delivery`, {
+      const response = await fetch(getApiUrl('/api/delivery'), {
         method: 'POST',
         body: JSON.stringify(formData),
         headers: {
