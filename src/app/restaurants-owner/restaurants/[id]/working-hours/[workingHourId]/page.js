@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Plus, Trash2, Clock, ArrowLeft, Calendar, Info, X, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { format } from "date-fns";
 import { Calendar as UiCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -20,28 +18,76 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { DateTimePicker24h } from "@/components/ui/date-time-picker";
 import { TimePicker } from "@/components/ui/time-picker";
 import { toast } from 'sonner';
+import { Switch } from "@/components/ui/switch";
 
 const DAYS_OF_WEEK = [
   'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
 ];
 
-export default function NewWorkingHoursPage() {
+export default function EditWorkingHoursPage() {
   const params = useParams();
   const router = useRouter();
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDayIndex, setSelectedDayIndex] = useState(null);
-  const [activeFrom, setActiveFrom] = useState(new Date());
-  const [activeTo, setActiveTo] = useState(new Date(new Date().setDate(new Date().getDate() + 20)));
-  const [newProgram, setNewProgram] = useState({
+  const [activeFrom, setActiveFrom] = useState(null);
+  const [activeTo, setActiveTo] = useState(null);
+  const [workingHour, setWorkingHour] = useState({
     name: '',
-    active_from: activeFrom ? format(activeFrom, "yyyy-MM-dd'T'HH:mm") : '',
-    active_to: activeTo ? format(activeTo, "yyyy-MM-dd'T'HH:mm") : '',
+    active_from: '',
+    active_to: '',
+    is_active: false,
+    is_auto_active: false,
     working_days: []
   });
+
+  useEffect(() => {
+    fetchWorkingHour();
+  }, []);
+
+  const fetchWorkingHour = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/working-hours/${params.workingHourId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'accept': 'application/json',
+          'content-type': 'application/json'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch working hour');
+      const data = await response.json();
+      
+      // Transform the data to match our state structure
+      const transformedData = {
+        name: data.data.name,
+        active_from: data.data.active_from,
+        active_to: data.data.active_to,
+        is_active: data.data.is_active,
+        is_auto_active: data.data.is_auto_active,
+        working_days: data.data.working_days.map(day => ({
+          eday: day.eday,
+          special_date: day.special_date,
+          times: day.working_times.map(time => ({
+            start: time.time_start,
+            end: time.time_end
+          }))
+        }))
+      };
+
+      setWorkingHour(transformedData);
+      setActiveFrom(new Date(transformedData.active_from));
+      setActiveTo(new Date(transformedData.active_to));
+    } catch (err) {
+      setError(err.message);
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const addWorkingDay = () => {
-    setNewProgram(prev => ({
+    setWorkingHour(prev => ({
       ...prev,
       working_days: [...prev.working_days, {
         eday: '',
@@ -53,16 +99,15 @@ export default function NewWorkingHoursPage() {
   };
 
   const addTimeSlot = (dayIndex) => {
-    setNewProgram(prev => {
+    setWorkingHour(prev => {
       const updatedDays = [...prev.working_days];
-      console.log(updatedDays[dayIndex].times)
-      updatedDays[dayIndex].times= [...updatedDays[dayIndex].times, { start: '', end: '' }];
+      updatedDays[dayIndex].times = [...updatedDays[dayIndex].times, { start: '', end: '' }];
       return { ...prev, working_days: updatedDays };
     });
   };
 
   const removeTimeSlot = (dayIndex, timeIndex) => {
-    setNewProgram(prev => {
+    setWorkingHour(prev => {
       const updatedDays = [...prev.working_days];
       updatedDays[dayIndex].times.splice(timeIndex, 1);
       return { ...prev, working_days: updatedDays };
@@ -70,7 +115,7 @@ export default function NewWorkingHoursPage() {
   };
 
   const removeWorkingDay = (dayIndex) => {
-    setNewProgram(prev => {
+    setWorkingHour(prev => {
       const updatedDays = [...prev.working_days];
       updatedDays.splice(dayIndex, 1);
       return { ...prev, working_days: updatedDays };
@@ -81,33 +126,22 @@ export default function NewWorkingHoursPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({
-        name: newProgram.name,
-        active_from: newProgram.active_from,
-        active_to: newProgram.active_to,
-        'working-days': newProgram.working_days.map(day => ({
-          eday: day.eday.toLowerCase(),
-          times: day.times.map(time => ({
-            start: time.start,
-            end: time.end
-          })),
-          special_date: day.special_date || undefined
-        }))
-      })
     setLoading(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/restaurant/${params.id}/working-hours`, {
-        method: 'POST',
+      const response = await fetch(`http://127.0.0.1:8000/api/working-hours/${params.workingHourId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'accept': 'application/json'
         },
         body: JSON.stringify({
-          name: newProgram.name,
-          active_from: newProgram.active_from,
-          active_to: newProgram.active_to,
-          'working-days': newProgram.working_days.map(day => ({
+          name: workingHour.name,
+          active_from: workingHour.active_from,
+          active_to: workingHour.active_to,
+          is_active: workingHour.is_active,
+          is_auto_active: workingHour.is_auto_active,
+          'working-days': workingHour.working_days.map(day => ({
             eday: day.eday.toLowerCase(),
             times: day.times.map(time => ({
               start: time.start,
@@ -118,15 +152,13 @@ export default function NewWorkingHoursPage() {
         })
       });
 
-      if (!response.ok){ 
+      if (!response.ok) {
         const errorData = await response.json();
-        throw new Error('Failed to create working hours' + (errorData?.message ? `: ${errorData.message}` : ''));
-    }
-      if(response.ok)
-        {
-           toast.success('Working hours program created successfully!');
-            router.push(`/restaurants-owner/restaurants/${params.id}/working-hours`);
-        }
+        throw new Error('Failed to update working hours' + (errorData?.message ? `: ${errorData.message}` : ''));
+      }
+
+      toast.success('Working hours program updated successfully!');
+    //   router.push(`/restaurants-owner/restaurants/${params.workingHourId}/working-hours`);
     } catch (err) {
       setError(err.message);
       toast.error(err.message);
@@ -138,7 +170,7 @@ export default function NewWorkingHoursPage() {
   const handleActiveFromChange = (date) => {
     if (date) {
       setActiveFrom(date);
-      setNewProgram(prev => ({
+      setWorkingHour(prev => ({
         ...prev,
         active_from: format(date, "yyyy-MM-dd'T'HH:mm")
       }));
@@ -148,12 +180,20 @@ export default function NewWorkingHoursPage() {
   const handleActiveToChange = (date) => {
     if (date) {
       setActiveTo(date);
-      setNewProgram(prev => ({
+      setWorkingHour(prev => ({
         ...prev,
         active_to: format(date, "yyyy-MM-dd'T'HH:mm")
       }));
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -168,8 +208,8 @@ export default function NewWorkingHoursPage() {
             Back
           </Button>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">New Working Hours Program</h1>
-            <p className="text-gray-500 mt-1">Create a new schedule for your restaurant</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Edit Working Hours Program</h1>
+            <p className="text-gray-500 mt-1">Update your restaurant's schedule</p>
           </div>
         </div>
 
@@ -186,8 +226,8 @@ export default function NewWorkingHoursPage() {
                 <Input
                   id="name"
                   type="text"
-                  value={newProgram.name}
-                  onChange={(e) => setNewProgram(prev => ({ ...prev, name: e.target.value }))}
+                  value={workingHour.name}
+                  onChange={(e) => setWorkingHour(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., Holiday Program"
                   required
                 />
@@ -195,7 +235,7 @@ export default function NewWorkingHoursPage() {
               <div className="space-y-2">
                 <Label>Active Period</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center items-center">
-                  <div  className='flex flex-row gap-4 justify-between items-center w-[50%]'>
+                  <div className='flex flex-row gap-4 justify-between items-center w-[50%]'>
                     <Label>From</Label>
                     <DateTimePicker24h
                       className='w-full'
@@ -213,6 +253,24 @@ export default function NewWorkingHoursPage() {
                   </div>
                 </div>
               </div>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_active"
+                    checked={workingHour.is_active}
+                    onCheckedChange={(checked) => setWorkingHour(prev => ({ ...prev, is_active: checked }))}
+                  />
+                  <Label htmlFor="is_active">Active</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_auto_active"
+                    checked={workingHour.is_auto_active}
+                    onCheckedChange={(checked) => setWorkingHour(prev => ({ ...prev, is_auto_active: checked }))}
+                  />
+                  <Label htmlFor="is_auto_active">Auto Active</Label>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -223,7 +281,7 @@ export default function NewWorkingHoursPage() {
                 <Clock className="h-5 w-5 text-blue-500" />
                 <h2 className="text-xl font-semibold text-gray-800">Working Days</h2>
                 <Badge variant="secondary" className="ml-2">
-                  {newProgram.working_days.length} days
+                  {workingHour.working_days.length} days
                 </Badge>
               </div>
               <Button
@@ -236,9 +294,9 @@ export default function NewWorkingHoursPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              {newProgram.working_days.length > 0 ? (
+              {workingHour.working_days.length > 0 ? (
                 <div className="space-y-4">
-                  {newProgram.working_days.map((day, index) => (
+                  {workingHour.working_days.map((day, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border hover:border-gray-300 transition-colors cursor-pointer"
@@ -285,7 +343,7 @@ export default function NewWorkingHoursPage() {
               disabled={loading}
               className="w-full sm:w-auto"
             >
-              {loading ? 'Creating...' : 'Create Program'}
+              {loading ? 'Updating...' : 'Update Program'}
             </Button>
           </div>
         </form>
@@ -320,11 +378,11 @@ export default function NewWorkingHoursPage() {
                     <div className="w-full sm:flex-1">
                       <Label>Day of Week</Label>
                       <Select
-                        value={newProgram.working_days[selectedDayIndex].eday}
+                        value={workingHour.working_days[selectedDayIndex].eday}
                         onValueChange={(value) => {
-                          const updatedDays = [...newProgram.working_days];
+                          const updatedDays = [...workingHour.working_days];
                           updatedDays[selectedDayIndex].eday = value;
-                          setNewProgram(prev => ({ ...prev, working_days: updatedDays }));
+                          setWorkingHour(prev => ({ ...prev, working_days: updatedDays }));
                         }}
                       >
                         <SelectTrigger>
@@ -346,12 +404,12 @@ export default function NewWorkingHoursPage() {
                             variant={"outline"}
                             className={cn(
                               "w-full justify-start text-left font-normal mt-1.5",
-                              !newProgram.working_days[selectedDayIndex].special_date && "text-muted-foreground"
+                              !workingHour.working_days[selectedDayIndex].special_date && "text-muted-foreground"
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {newProgram.working_days[selectedDayIndex].special_date ? (
-                              format(new Date(newProgram.working_days[selectedDayIndex].special_date), "LLL dd, y")
+                            {workingHour.working_days[selectedDayIndex].special_date ? (
+                              format(new Date(workingHour.working_days[selectedDayIndex].special_date), "LLL dd, y")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -361,11 +419,11 @@ export default function NewWorkingHoursPage() {
                           <UiCalendar
                             initialFocus
                             mode="single"
-                            selected={newProgram.working_days[selectedDayIndex].special_date ? new Date(newProgram.working_days[selectedDayIndex].special_date) : undefined}
+                            selected={workingHour.working_days[selectedDayIndex].special_date ? new Date(workingHour.working_days[selectedDayIndex].special_date) : undefined}
                             onSelect={(date) => {
-                              const updatedDays = [...newProgram.working_days];
+                              const updatedDays = [...workingHour.working_days];
                               updatedDays[selectedDayIndex].special_date = date ? format(date, "yyyy-MM-dd") : '';
-                              setNewProgram(prev => ({ ...prev, working_days: updatedDays }));
+                              setWorkingHour(prev => ({ ...prev, working_days: updatedDays }));
                             }}
                           />
                         </PopoverContent>
@@ -392,16 +450,16 @@ export default function NewWorkingHoursPage() {
                   </div>
 
                   <div className="space-y-3">
-                    {newProgram.working_days[selectedDayIndex].times.map((time, timeIndex) => (
+                    {workingHour.working_days[selectedDayIndex].times.map((time, timeIndex) => (
                       <div key={timeIndex} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-gray-50 p-3 rounded-lg border">
                         <Clock className="h-5 w-5 text-gray-400 hidden sm:block" />
                         <div className="w-full sm:w-auto">
                           <TimePicker
                             value={time.start}
                             onChange={(timeString) => {
-                              const updatedDays = [...newProgram.working_days];
+                              const updatedDays = [...workingHour.working_days];
                               updatedDays[selectedDayIndex].times[timeIndex].start = timeString;
-                              setNewProgram(prev => ({ ...prev, working_days: updatedDays }));
+                              setWorkingHour(prev => ({ ...prev, working_days: updatedDays }));
                             }}
                             label="Start Time"
                           />
@@ -411,9 +469,9 @@ export default function NewWorkingHoursPage() {
                           <TimePicker
                             value={time.end}
                             onChange={(timeString) => {
-                              const updatedDays = [...newProgram.working_days];
+                              const updatedDays = [...workingHour.working_days];
                               updatedDays[selectedDayIndex].times[timeIndex].end = timeString;
-                              setNewProgram(prev => ({ ...prev, working_days: updatedDays }));
+                              setWorkingHour(prev => ({ ...prev, working_days: updatedDays }));
                             }}
                             label="End Time"
                           />
@@ -453,4 +511,4 @@ export default function NewWorkingHoursPage() {
       </div>
     </div>
   );
-} 
+}

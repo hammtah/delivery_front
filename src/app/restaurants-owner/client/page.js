@@ -182,7 +182,7 @@ export default function ClientsPage() {
                                     )}
                                     <div className="flex items-center gap-2">
                                         <Badge variant="outline" className="text-xs">
-                                            {client.addresses?.length || 0} Addresses
+                                            {client.addresses?.length || 0} {client.addresses?.length<2 ? 'Address' : 'Addresses'}
                                         </Badge>
                                         <Badge variant="outline" className="text-xs">
                                             {client.addresses?.reduce((acc, addr) => acc + addr.zones.length, 0) || 0} Zones
