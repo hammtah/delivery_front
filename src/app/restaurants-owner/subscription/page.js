@@ -16,11 +16,13 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Calendar, CreditCard, Package, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function SubscriptionPage() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubscription, setSelectedSubscription] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchSubscriptions = async () => {
@@ -76,6 +78,10 @@ export default function SubscriptionPage() {
       style: "currency",
       currency: "USD",
     }).format(amount / 100);
+  };
+
+  const handleSubscribe = (subscription) => {
+    router.push(`/restaurants-owner/payment?subscription_id=${subscription.sub_id}`);
   };
 
   return (
@@ -136,7 +142,16 @@ export default function SubscriptionPage() {
                           {formatCurrency(subscription.type === "yearly" ? subscription.plan.yearly_price : subscription.plan.monthly_price)}
                         </TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm">View Details</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSubscribe(subscription);
+                            }}
+                          >
+                            Subscribe
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
