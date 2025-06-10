@@ -111,7 +111,7 @@ export default function SubscriptionPage() {
                       <TableHead>Status</TableHead>
                       <TableHead>Period</TableHead>
                       <TableHead>Amount</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>Type</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -142,6 +142,12 @@ export default function SubscriptionPage() {
                           {formatCurrency(subscription.type === "yearly" ? subscription.plan.yearly_price : subscription.plan.monthly_price)}
                         </TableCell>
                         <TableCell>
+                            <Badge variant={subscription.type === "yearly" ? "primary" : "secondary"}>
+                                {subscription.type.charAt(0).toUpperCase() + subscription.type.slice(1)}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>
+                            {subscription.status !== "active" && (
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -150,8 +156,9 @@ export default function SubscriptionPage() {
                               handleSubscribe(subscription);
                             }}
                           >
-                            Subscribe
+                            Pay
                           </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
