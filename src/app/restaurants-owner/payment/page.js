@@ -34,46 +34,80 @@ const PaymentForm = ({ clientSecret, subscriptionId, paymentId }) => {
     setProcessing(true);
     setError(null);
 
-    try {
-      // Confirm the payment
-      const { error: paymentError, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/payment/success`,
-        },
-        redirect: 'if_required'
-    });
 
-      if (paymentError) {
-        setError(paymentError.message);
-      }
-    //   } 
-    //   else {
-        // Payment successful, confirm with backend
-        const response = await fetch(`http://localhost:8000/api/payment/${paymentId}/confirm`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'accept': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+    try {
+        // 1. Confirm the payment on the client-side with Stripe.js
+        // This will handle 3D Secure, card details collection, etc.
+        const { error: paymentError, paymentIntent } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                // This return_url is crucial for handling redirects for 3D Secure or other actions.
+                // Stripe will redirect the user to this URL after the payment flow is complete.
+                return_url: `${window.location.origin}/payment/success?payment_intent_id=${paymentId}`, // Pass paymentId for verification
+            },
+            redirect: 'if_required' // This is the default, but good to be explicit
         });
 
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to confirm payment');
-        }
+        if (paymentError) {
+            // This means there was an immediate client-side error (e.g., invalid card details).
+            setError(paymentError.message);
+            toast.error(`Payment failed: ${paymentError.message}`);
+            // No need to call your backend if client-side validation failed.
+        } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+            // Payment was successful on the client-side (no 3D secure needed, or 3D secure completed).
+            // Now, inform your backend to update the subscription status.
+            console.log('Payment Intent Succeeded (client-side):', paymentIntent);
 
-        // Redirect to success page
-        // router.push('/payment/success');
-        toast.success('Payment successful! Redirecting to success page...');
-        // router.push('/payment/success');
-    //   }
+            const response = await fetch(`http://localhost:8000/api/payment/${paymentId}/confirm`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                // Send the payment_intent_id that was just confirmed
+                body: JSON.stringify({ payment_intent_id: paymentIntent.id })
+            });
+
+            const data = await response.json();
+            console.log('Backend confirmation response:', data);
+
+            if (response.ok) {
+                toast.success('Payment successful! Your subscription is now active.');
+                // Redirect to the success page or subscription management page
+                router.push('/restaurants-owner/subscription');
+            } else {
+                // Backend failed to confirm payment, even if Stripe said it succeeded.
+                // This could indicate a data inconsistency or another issue on your server.
+                // You should log this error and potentially trigger a manual review process.
+                const backendError = data.error || 'Failed to confirm payment with backend.';
+                setError(backendError);
+                toast.error(`Error activating subscription: ${backendError}`);
+                console.error('Backend confirmation failed:', data);
+            }
+        } else if (paymentIntent && paymentIntent.status === 'requires_action') {
+            // Payment requires additional action (like 3D Secure).
+            // Stripe.js's `confirmPayment` with `redirect: 'if_required'` will handle the redirect.
+            // Your `return_url` will be visited after the action.
+            console.log('Payment requires action, redirecting...');
+            toast('Please complete the authentication to finalize your payment.');
+            // No further action needed here on the frontend, as Stripe handles the redirect.
+        } else if (paymentIntent) {
+             // Handle other paymentIntent statuses if needed (e.g., 'requires_capture', 'canceled')
+            setError(`Payment status: ${paymentIntent.status}. Please check your payment details.`);
+            toast.error(`Payment not completed. Status: ${paymentIntent.status}`);
+        } else {
+            // This case should ideally not be reached if paymentError is null.
+            // It means confirmPayment didn't return error or paymentIntent, which is unexpected.
+            setError('An unexpected error occurred during payment confirmation.');
+            toast.error('An unexpected error occurred during payment confirmation.');
+        }
     } catch (err) {
-      setError('An unexpected error occurred.');
-      console.error('Payment error:', err);
+        console.error('Unhandled error during payment process:', err);
+        setError('An unexpected error occurred. Please try again.');
+        toast.error('An unexpected error occurred. Please try again.');
     } finally {
-      setProcessing(false);
+        setProcessing(false);
     }
   };
 
