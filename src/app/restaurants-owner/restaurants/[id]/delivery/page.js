@@ -1173,8 +1173,8 @@ export default function CreateDeliveryPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6 pb-24">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto py-6 space-y-6 pb-24 pl-64 pr-4">
+      <div className="flex justify-between items-center w-[90%] mx-auto">
         <h1 className="text-3xl font-bold">Create New Delivery</h1>
         <Button variant="outline" onClick={() => router.back()}>
           Back
@@ -1189,8 +1189,8 @@ export default function CreateDeliveryPage() {
 
       <div className="space-y-6">
         {/* Progress Steps */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+        <div className="relative w-[90%] mx-auto">
+          <div className="absolute top-0 inset-x-0 bottom-1/2 flex items-center" aria-hidden="true">
             <div className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-between">
@@ -1243,7 +1243,7 @@ export default function CreateDeliveryPage() {
       </div>
 
       {/* Fixed Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
+      <div className="fixed bottom-0 left-64 right-0 bg-white border-t shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <Button
