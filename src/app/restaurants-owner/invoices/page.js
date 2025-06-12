@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CommissionsList from './components/CommissionsList';
-
+import CODList from './components/CODList';
 export default function InvoicesPage() {
   const [activeTab, setActiveTab] = useState('commissions');
 
@@ -24,9 +24,7 @@ export default function InvoicesPage() {
           </TabsContent>
 
           <TabsContent value="cod">
-            <div className="text-center py-10">
-              <p className="text-gray-500">COD Deliveries section coming soon...</p>
-            </div>
+            <CODList />
           </TabsContent>
 
           <TabsContent value="drivers">
