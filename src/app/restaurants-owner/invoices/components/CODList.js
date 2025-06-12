@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/utils/api';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { DollarSign, Package, CreditCard, Clock, User, Calendar, Timer, CheckCircle2 } from 'lucide-react';
+import { DollarSign, Package, CreditCard, Clock, User, Calendar, Timer, CheckCircle2, Users } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -23,10 +23,38 @@ export default function CODList() {
   const [selectedDeliveries, setSelectedDeliveries] = useState([]);
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [paymentStatus, setPaymentStatus] = useState('all');
+  const [drivers, setDrivers] = useState([]);
+  const [selectedDriver, setSelectedDriver] = useState('all');
+
+  const fetchDrivers = async () => {
+    try {
+      const response = await fetch(getApiUrl('/api/driver'), {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setDrivers(data.data);
+      } else {
+        toast.error(data.message || 'Failed to fetch drivers');
+      }
+    } catch (error) {
+      toast.error('Failed to fetch drivers');
+    }
+  };
 
   const fetchDeliveries = async () => {
     try {
-      const response = await fetch(getApiUrl('/api/cod-deliveries'), {
+      setLoading(true);
+      let url = getApiUrl('/api/cod-deliveries');
+      
+      // If a specific driver is selected, fetch their deliveries
+      if (selectedDriver !== 'all') {
+        url = getApiUrl(`/api/driver/${selectedDriver}/cod-deliveries`);
+      }
+
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -45,8 +73,17 @@ export default function CODList() {
   };
 
   useEffect(() => {
-    fetchDeliveries();
+    fetchDrivers();
   }, []);
+
+  useEffect(() => {
+    fetchDeliveries();
+  }, [selectedDriver]);
+
+  const handleDriverChange = (driverId) => {
+    setSelectedDriver(driverId);
+    setSelectedDeliveries([]); // Clear selections when changing driver
+  };
 
   const handleDateRangeChange = (range) => {
     setDateRange(range);
@@ -166,6 +203,39 @@ export default function CODList() {
           <h2 className="text-xl font-semibold">COD Deliveries</h2>
           <div className="flex items-center gap-4">
             <Select
+              value={selectedDriver}
+              onValueChange={(value) => {
+                setSelectedDriver(value);
+                setSelectedDeliveries([]);
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Driver" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <span>All Drivers</span>
+                  </div>
+                </SelectItem>
+                {drivers.map((driver) => (
+                  <SelectItem key={driver.id} value={driver.id}>
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={driver.user.image || '/placeholder-avatar.png'}
+                        alt={driver.user.name}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                      <span>{driver.user.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
               value={paymentStatus}
               onValueChange={setPaymentStatus}
             >
@@ -197,6 +267,7 @@ export default function CODList() {
                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Delivery</th>
                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Client</th>
                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Driver</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Restaurant</th>
                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Type</th>
                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Total Amount</th>
                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Delivered At</th>
@@ -264,6 +335,11 @@ export default function CODList() {
                             </div>
                           </div>
                         )}
+                      </td>
+                      <td className="p-4 align-middle">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500">{delivery.restaurant.name}</span>
+                        </div>
                       </td>
                       <td className="p-4 align-middle">
                         <div className="flex items-center gap-2">
