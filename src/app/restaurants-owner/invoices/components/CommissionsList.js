@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/utils/api';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { DollarSign, Package, CreditCard, Clock, User, Calendar, Timer, CheckCircle2 } from 'lucide-react';
+import { DollarSign, Package, CreditCard, Clock, User, Calendar, Timer, CheckCircle2, Users } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -21,31 +21,67 @@ export default function CommissionsList() {
   const [commissions, setCommissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeliveries, setSelectedDeliveries] = useState([]);
-  const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+    endDate: new Date(),
+  });
   const [paymentStatus, setPaymentStatus] = useState('all');
+  const [drivers, setDrivers] = useState([]);
+  const [selectedDriver, setSelectedDriver] = useState('all');
+  const [selectedDriverType, setSelectedDriverType] = useState('all');
 
-  useEffect(() => {
-    fetchCommissions();
-  }, []);
-
-  const fetchCommissions = async () => {
+  const fetchDrivers = async () => {
     try {
-      const response = await fetch(getApiUrl('/api/commissions'),
-      {
-        headers:{
-            'authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        }
+      const response = await fetch(getApiUrl('/api/driver'), {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
       });
       const data = await response.json();
-      setCommissions(data.data);
+    //   if (data.success) {
+        setDrivers(data.data);
+    //   } else {
+    if(!response.ok) {
+        toast.error(data.message || 'Failed to fetch drivers');
+      }
     } catch (error) {
-      toast.error(error.message || "An error occurred while fetching commissions");
+      toast.error('Failed to fetch drivers');
+    }
+  };
+
+  const fetchCommissions = async () => {
+    setLoading(true);
+    try {
+      const endpoint = selectedDriver === 'all' 
+        ? '/api/commissions'
+        : `/api/driver/${selectedDriver}/commissions`;
+        
+      const response = await fetch(getApiUrl(endpoint), {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      const data = await response.json();
+    //   if (data.success) {
+        setCommissions(data.data);
+    //   } else {
+    if(!response.ok) {
+        toast.error(data.message || 'Failed to fetch commissions');
+      }
+    } catch (error) {
+      toast.error('Failed to fetch commissions');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
+
+  useEffect(() => {
+    fetchCommissions();
+  }, [selectedDriver]);
 
   const handleDeliverySelect = (deliveryId) => {
     setSelectedDeliveries(prev => 
@@ -119,17 +155,25 @@ export default function CommissionsList() {
 
   const filteredCommissions = commissions.filter(commission => {
     // Date range filter
+    // if (dateRange.startDate && dateRange.endDate) {
+    //   const commissionDate = new Date(commission.rtime_arrival);
+    //   const fromDate = new Date(dateRange.startDate);
+    //   const toDate = new Date(dateRange.endDate);
+      
+    //   if (commissionDate < fromDate || commissionDate > toDate) return false;
+    // }
+        // Date range filter
     if (dateRange.from) {
-      const commissionDate = new Date(commission.rtime_arrival);
+      const deliveryDate = new Date(commission.rtime_arrival);
       const fromDate = new Date(dateRange.from);
       fromDate.setHours(0, 0, 0, 0);
       
       if (!dateRange.to) {
-        if (commissionDate < fromDate) return false;
+        if (deliveryDate < fromDate) return false;
       } else {
         const toDate = new Date(dateRange.to);
         toDate.setHours(23, 59, 59, 999);
-        if (commissionDate < fromDate || commissionDate > toDate) return false;
+        if (deliveryDate < fromDate || deliveryDate > toDate) return false;
       }
     }
 
@@ -176,6 +220,44 @@ export default function CommissionsList() {
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Commissions</h2>
           <div className="flex items-center gap-4">
+            <DateRangeFilter
+              dateRange={dateRange}
+              onDateRangeChange={handleDateRangeChange}
+            />
+            <Select
+              value={selectedDriver}
+              onValueChange={(value) => {
+                setSelectedDriverType(value === 'all' ? 'all' : drivers.find(d => d.id === value).type);
+                setSelectedDriver(value);
+                setSelectedDeliveries([]);
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Driver" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <span>All Drivers</span>
+                  </div>
+                </SelectItem>
+                {drivers.map((driver) => (
+                  <SelectItem key={driver.id} value={driver.id}>
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={driver.user.image || '/placeholder-avatar.png'}
+                        alt={driver.user.name}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                      <span>{driver.user.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select
               value={paymentStatus}
               onValueChange={setPaymentStatus}
@@ -189,7 +271,6 @@ export default function CommissionsList() {
                 <SelectItem value="unpaid">Unpaid Commissions</SelectItem>
               </SelectContent>
             </Select>
-            <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
           </div>
         </div>
 
@@ -222,6 +303,7 @@ export default function CommissionsList() {
                   const delay = calculateDelay(commission.rtime_arrival, commission.etime_arrival);
                   
                   return (
+
                     <tr 
                       key={commission.id}
                       className={`border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted ${
@@ -311,12 +393,17 @@ export default function CommissionsList() {
             </table>
           </div>
         </div>
-
+        {}
+        {/* No commissions found message */}
         {filteredCommissions.length === 0 && (
           <div className="text-center py-10 text-gray-500">
-            {commissions.length === 0 
-              ? 'No commissions found' 
-              : 'No commissions match the selected filters'}
+            {commissions.length === 0 ? (
+              selectedDriverType === 'monthly' ? (
+                <div className="text-center py-4 text-sm text-gray-500">
+                  Monthly drivers do not have commissions.
+                </div>
+              ) : 'No commissions found'
+            ) : 'No commissions match the selected filters'}
           </div>
         )}
       </div>
