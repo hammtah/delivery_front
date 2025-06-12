@@ -36,7 +36,8 @@ export default function CreateDeliveryPage() {
     type: "asap",
     fees: 0,
     driver_id: "",
-    note: ""
+    note: "",
+    commission: 0
   });
 
   const [clients, setClients] = useState([]);
@@ -45,6 +46,7 @@ export default function CreateDeliveryPage() {
   const [loadingDrivers, setLoadingDrivers] = useState(false);
   const [items, setItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState(null);
 
   const [commissions, setCommissions] = useState({
     full_commission: {},
@@ -174,6 +176,7 @@ export default function CreateDeliveryPage() {
       // Auto-select the first driver if available and no driver is currently selected
       if (data.data.length > 0 && !formData.driver_id) {
         setFormData(prev => ({ ...prev, driver_id: data.data[0].id }));
+        setSelectedDriver(data.data[0]);
       }
     } catch (error) {
       toast.error('Failed to fetch available drivers: ' + error.message);
@@ -290,7 +293,11 @@ export default function CreateDeliveryPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
+    if(selectedDriver.type === 'per_delivery'){
+        formData.commission = formData.full_commission;
+    }else if(selectedDriver.type === 'both'){
+        formData.commission = formData.partial_commission;
+    }
     try {
       const response = await fetch(getApiUrl('/api/delivery'), {
         method: 'POST',
@@ -748,7 +755,11 @@ export default function CreateDeliveryPage() {
                             ? 'bg-primary/5'
                             : 'hover:bg-gray-50'
                         }`}
-                        onClick={() => setFormData(prev => ({ ...prev, driver_id: driver.id }))}
+                        onClick={() =>{
+                             setFormData(prev => ({ ...prev, driver_id: driver.id }))
+                             setSelectedDriver(driver);
+                            }
+                            }
                       >
                         <div className="flex items-center gap-3">
                           <div className="relative">
@@ -774,7 +785,7 @@ export default function CreateDeliveryPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <h3 className="font-medium truncate">{driver.user.name}</h3>
-                              <span className="text-xs text-gray-500 capitalize">{driver.type.replace('_', ' ')}</span>
+                              <span className="text-xs text-gray-500 capitalize">{driver.type == 'both' ? 'Monthly And Per delivery' : driver.type.replace('_', ' ')} Payed Driver</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
                               <Phone className="h-3 w-3" />
@@ -851,77 +862,79 @@ export default function CreateDeliveryPage() {
                     <Alert className="mb-4">
                       <AlertCircleIcon className="h-4 w-4" />
                       <AlertDescription className="text-xs">
-                        These are the default restaurant settings values. You can modify them in the restaurant settings.
+                        The client is not belonging to any zone, so the default restaurant settings values are used. You can modify them in the restaurant settings.
                       </AlertDescription>
                     </Alert>
                   )}
                   <div className="grid grid-cols-1 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="full_commission">Full Commission</Label>
-                      <div className="flex gap-2">
-                        <Select
-                          value={selectedZones.full_commission}
-                          onValueChange={(value) => handleZoneChange('full_commission', value)}
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="Select zone" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(commissions.full_commission).map(([zone, value]) => (
-                              <SelectItem key={zone} value={zone}>
-                                {zone === 'default' ? 'Default' : `Zone ${zone}`}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="relative flex-1">
-                          <Input
-                            id="full_commission"
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={formData.full_commission}
-                            onChange={(e) => setFormData(prev => ({ ...prev, full_commission: parseFloat(e.target.value) || 0 }))}
-                            className="pr-8"
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                    { (selectedDriver.type === 'per_delivery')  && (
+                        <div className="space-y-2">
+                        <Label htmlFor="full_commission">Full Commission</Label>
+                        <div className="flex gap-2">
+                            <Select
+                            value={selectedZones.full_commission}
+                            onValueChange={(value) => handleZoneChange('full_commission', value)}
+                            >
+                            <SelectTrigger className="w-[140px]">
+                                <SelectValue placeholder="Select zone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.entries(commissions.full_commission).map(([zone, value]) => (
+                                <SelectItem key={zone} value={zone}>
+                                    {zone === 'default' ? 'Default' : `Zone ${zone}`}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                            <div className="relative flex-1">
+                            <Input
+                                id="full_commission"
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={formData.full_commission}
+                                onChange={(e) => setFormData(prev => ({ ...prev, full_commission: parseFloat(e.target.value) || 0 }))}
+                                className="pr-8"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                            </div>
                         </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="partial_commission">Partial Commission</Label>
-                      <div className="flex gap-2">
-                        <Select
-                          value={selectedZones.partial_commission}
-                          onValueChange={(value) => handleZoneChange('partial_commission', value)}
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="Select zone" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(commissions.partial_commission).map(([zone, value]) => (
-                              <SelectItem key={zone} value={zone}>
-                                {zone === 'default' ? 'Default' : `Zone ${zone}`}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="relative flex-1">
-                          <Input
-                            id="partial_commission"
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={formData.partial_commission}
-                            onChange={(e) => setFormData(prev => ({ ...prev, partial_commission: parseFloat(e.target.value) || 0 }))}
-                            className="pr-8"
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
                         </div>
-                      </div>
-                    </div>
-
+                    )}
+                    { (selectedDriver.type === 'both') && (
+                        <div className="space-y-2">
+                        <Label htmlFor="partial_commission">Partial Commission</Label>
+                        <div className="flex gap-2">
+                            <Select
+                            value={selectedZones.partial_commission}
+                            onValueChange={(value) => handleZoneChange('partial_commission', value)}
+                            >
+                            <SelectTrigger className="w-[140px]">
+                                <SelectValue placeholder="Select zone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.entries(commissions.partial_commission).map(([zone, value]) => (
+                                <SelectItem key={zone} value={zone}>
+                                    {zone === 'default' ? 'Default' : `Zone ${zone}`}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                            <div className="relative flex-1">
+                            <Input
+                                id="partial_commission"
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={formData.partial_commission}
+                                onChange={(e) => setFormData(prev => ({ ...prev, partial_commission: parseFloat(e.target.value) || 0 }))}
+                                className="pr-8"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                            </div>
+                        </div>
+                        </div>
+                    )}
                     <div className="space-y-2">
                       <Label htmlFor="fees">Delivery Fee</Label>
                       <div className="flex gap-2">
@@ -1012,11 +1025,11 @@ export default function CreateDeliveryPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
                           <span className="font-medium">Payment:</span>
-                          <span className="text-gray-600 capitalize">{formData.payment_type}</span>
+                          <span className="text-gray-600 capitalize">{formData.payment_type == 'cod' ? 'Cash On Delivery': formData.payment_type}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <span className="font-medium">Type:</span>
-                          <span className="text-gray-600 capitalize">{formData.type}</span>
+                          <span className="text-gray-600 capitalize">{formData.type == 'asap' ? 'As Soon As Possible' : formData.type}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -1108,14 +1121,18 @@ export default function CreateDeliveryPage() {
 
                       {/* Commissions */}
                       <div className="space-y-2 pt-2 border-t">
+                      { (selectedDriver.type === 'per_delivery')  && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-500">Full Commission</span>
                           <span className="font-medium">{formData.full_commission}%</span>
                         </div>
+                    )}
+                    {( selectedDriver.type === 'both') && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-500">Partial Commission</span>
                           <span className="font-medium">{formData.partial_commission}%</span>
                         </div>
+                    )}
                       </div>
 
                       {/* Total */}
@@ -1152,8 +1169,8 @@ export default function CreateDeliveryPage() {
                               <div className="text-sm font-medium">
                                 {drivers.find(d => d.id === formData.driver_id)?.user.name}
                               </div>
-                              <div className="text-xs text-gray-500">
-                                {drivers.find(d => d.id === formData.driver_id)?.type.replace('_', ' ')}
+                              <div className="text-xs text-gray-500 capitalize">
+                                {drivers.find(d => d.id === formData.driver_id)?.type.replace('_', ' ') == 'both' ? 'Monthly And Per Delivery' : drivers.find(d => d.id === formData.driver_id).type.replace('_', ' ') } Payed Driver
                               </div>
                             </div>
                           </div>
