@@ -8,11 +8,21 @@ import { DollarSign, Package, CreditCard, Clock, User, Calendar, Timer, CheckCir
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import DateRangeFilter from './DateRangeFilter';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function CommissionsList() {
   const [commissions, setCommissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeliveries, setSelectedDeliveries] = useState([]);
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [paymentStatus, setPaymentStatus] = useState('all');
 
   useEffect(() => {
     fetchCommissions();
@@ -103,6 +113,57 @@ export default function CommissionsList() {
     return `${sign}${mins}m`;
   };
 
+  const handleDateRangeChange = (range) => {
+    setDateRange(range);
+  };
+
+  const filteredCommissions = commissions.filter(commission => {
+    // Date range filter
+    if (dateRange.from) {
+      const commissionDate = new Date(commission.rtime_arrival);
+      const fromDate = new Date(dateRange.from);
+      fromDate.setHours(0, 0, 0, 0);
+      
+      if (!dateRange.to) {
+        if (commissionDate < fromDate) return false;
+      } else {
+        const toDate = new Date(dateRange.to);
+        toDate.setHours(23, 59, 59, 999);
+        if (commissionDate < fromDate || commissionDate > toDate) return false;
+      }
+    }
+
+    // Payment status filter
+    if (paymentStatus !== 'all') {
+      const isPaid = commission.commission_payment_date !== null;
+      if (paymentStatus === 'paid' && !isPaid) return false;
+      if (paymentStatus === 'unpaid' && isPaid) return false;
+    }
+
+    return true;
+  });
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      // Only select unpaid commissions from the filtered list
+      const unpaidFilteredCommissions = filteredCommissions
+        .filter(commission => commission.commission_payment_date === null)
+        .map(commission => commission.id);
+      setSelectedDeliveries(unpaidFilteredCommissions);
+    } else {
+      setSelectedDeliveries([]);
+    }
+  };
+
+  const isAllSelected = () => {
+    const unpaidFilteredCommissions = filteredCommissions
+      .filter(commission => commission.commission_payment_date === null);
+    return unpaidFilteredCommissions.length > 0 && 
+           unpaidFilteredCommissions.every(commission => 
+             selectedDeliveries.includes(commission.id)
+           );
+  };
+
   if (loading) {
     return <div className="text-center py-10">Loading...</div>;
   }
@@ -114,6 +175,22 @@ export default function CommissionsList() {
       <div className="space-y-6 pb-24">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Commissions</h2>
+          <div className="flex items-center gap-4">
+            <Select
+              value={paymentStatus}
+              onValueChange={setPaymentStatus}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Commissions</SelectItem>
+                <SelectItem value="paid">Paid Commissions</SelectItem>
+                <SelectItem value="unpaid">Unpaid Commissions</SelectItem>
+              </SelectContent>
+            </Select>
+            <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
+          </div>
         </div>
 
         <div className="rounded-md border">
@@ -123,14 +200,8 @@ export default function CommissionsList() {
                 <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
                     <Checkbox
-                      checked={commissions.length > 0 && selectedDeliveries.length === commissions.length}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedDeliveries(commissions.map(c => c.id));
-                        } else {
-                          setSelectedDeliveries([]);
-                        }
-                      }}
+                      checked={isAllSelected()}
+                      onCheckedChange={handleSelectAll}
                       className="mt-1"
                     />
                   </th>
@@ -145,7 +216,7 @@ export default function CommissionsList() {
                 </tr>
               </thead>
               <tbody className="[&_tr:last-child]:border-0">
-                {commissions.map((commission) => {
+                {filteredCommissions.map((commission) => {
                   const isPaid = commission.commission_payment_date !== null;
                   const amountToPay = (commission.commission * commission.fees / 100).toFixed(2);
                   const delay = calculateDelay(commission.rtime_arrival, commission.etime_arrival);
@@ -164,15 +235,14 @@ export default function CommissionsList() {
                           </Badge>
                         </div>
                       )}
-                        {!isPaid ? (
-                            <td className="p-4 align-middle">
-                                <Checkbox className='mr-2'
-                                    checked={selectedDeliveries.includes(commission.id)}
-                                    onCheckedChange={() => handleDeliverySelect(commission.id)}
-                                />
-                            
-                            </td>
-                        ):''}
+                      {!isPaid ? (
+                        <td className="p-4 align-middle">
+                          <Checkbox className='mr-2'
+                            checked={selectedDeliveries.includes(commission.id)}
+                            onCheckedChange={() => handleDeliverySelect(commission.id)}
+                          />
+                        </td>
+                      ):''}
                       <td className="p-4 align-middle pt-5">
                         <div className="flex items-center gap-2">
                           <Package className="w-4 h-4 text-primary" />
@@ -242,9 +312,11 @@ export default function CommissionsList() {
           </div>
         </div>
 
-        {commissions.length === 0 && (
+        {filteredCommissions.length === 0 && (
           <div className="text-center py-10 text-gray-500">
-            No commissions found
+            {commissions.length === 0 
+              ? 'No commissions found' 
+              : 'No commissions match the selected filters'}
           </div>
         )}
       </div>
