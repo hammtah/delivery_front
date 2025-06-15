@@ -22,6 +22,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function DeliveriesPage() {
   const [restaurants, setRestaurants] = useState([]);
@@ -29,6 +40,7 @@ export default function DeliveriesPage() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingDeliveries, setLoadingDeliveries] = useState(false);
+  const [deliveryToCancel, setDeliveryToCancel] = useState(null);
 
   if (localStorage.getItem('token') == null) {
     redirect('/restaurants-owner/login');
@@ -88,6 +100,31 @@ export default function DeliveriesPage() {
     }
   };
 
+  const cancelDelivery = async (deliveryId) => {
+    try {
+      const response = await fetch(getApiUrl(`/api/delivery/${deliveryId}/cancel`), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to cancel delivery');
+      }
+      
+      // Refetch deliveries after successful cancellation
+      if (selectedRestaurant) {
+        fetchDeliveries(selectedRestaurant);
+      }
+    } catch (error) {
+      console.error('Error canceling delivery:', error);
+    } finally {
+      setDeliveryToCancel(null);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusColors = {
       assigned: 'bg-blue-500',
@@ -113,6 +150,26 @@ export default function DeliveriesPage() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8 ml-0 md:ml-64 max-w-[1200px] mx-auto">
+      <AlertDialog open={!!deliveryToCancel} onOpenChange={() => setDeliveryToCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to cancel this delivery?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently cancel the delivery.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deliveryToCancel && cancelDelivery(deliveryToCancel)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, cancel delivery
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Deliveries</h1>
         <div className="w-full sm:w-64">
@@ -149,6 +206,7 @@ export default function DeliveriesPage() {
                 <TableHead>Address</TableHead>
                 <TableHead>Total Amount</TableHead>
                 <TableHead>Created At</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -198,6 +256,17 @@ export default function DeliveriesPage() {
                       {delivery.created_at
                         ? format(new Date(delivery.created_at), 'MMM d, yyyy HH:mm')
                         : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {delivery.status !== 'cancelled' && delivery.status !== 'delivered' && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeliveryToCancel(delivery.id)}
+                        >
+                          Cancel
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
