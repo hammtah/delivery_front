@@ -1,0 +1,230 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+% Configuration de la page
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+% Configuration des en-têtes et pieds de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Configuration des titres
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
+
+\begin{document}
+
+% Page de garde
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge\bfseries Rapport de Stage\par}
+    \vspace{1.5cm}
+    {\Large\itshape Développement d'une Application Web avec Next.js\par}
+    \vspace{2cm}
+    {\Large\itshape Nom et Prénom de l'étudiant\par}
+    \vspace{1cm}
+    {\large École d'Ingénieurs\par}
+    \vspace{1cm}
+    {\large Année Universitaire 2023-2024\par}
+    \vfill
+    {\large \today\par}
+\end{titlepage}
+
+% Table des matières
+\tableofcontents
+\newpage
+
+% Remerciements
+\chapter*{Remerciements}
+Je tiens à remercier sincèrement toutes les personnes qui ont contribué à la réalisation de ce stage et à l'élaboration de ce rapport.
+
+% Introduction
+\chapter{Introduction}
+\section{Contexte du stage}
+Ce stage s'inscrit dans le cadre de la formation en ingénierie et vise à développer une application web moderne utilisant les technologies actuelles du développement web.
+
+\section{Objectifs du stage}
+Les principaux objectifs de ce stage sont :
+\begin{itemize}
+    \item Maîtriser le framework Next.js
+    \item Développer une application web complète
+    \item Appliquer les bonnes pratiques de développement
+    \item Acquérir une expérience pratique en développement web
+\end{itemize}
+
+% Présentation du projet
+\chapter{Présentation du Projet}
+\section{Description du projet}
+Le projet consiste en le développement d'une application web moderne utilisant Next.js, un framework React qui permet de créer des applications web performantes et évolutives.
+
+\section{Technologies utilisées}
+\begin{itemize}
+    \item Next.js - Framework React
+    \item React - Bibliothèque JavaScript
+    \item TypeScript - Langage de programmation
+    \item Tailwind CSS - Framework CSS
+\end{itemize}
+
+% Analyse des besoins
+\chapter{Analyse des Besoins}
+\section{Besoins Fonctionnels}
+\subsection{Gestion des Utilisateurs}
+\begin{itemize}
+    \item Authentification et autorisation des utilisateurs
+    \item Gestion des profils utilisateurs
+    \item Système de rôles et permissions
+\end{itemize}
+
+\subsection{Gestion des Livraisons}
+\begin{itemize}
+    \item Suivi des livraisons en temps réel
+    \item Gestion des commandes
+    \item Système de notification
+    \item Interface de suivi des livraisons
+\end{itemize}
+
+\subsection{Interface Utilisateur}
+\begin{itemize}
+    \item Interface responsive adaptée à tous les appareils
+    \item Navigation intuitive
+    \item Tableaux de bord personnalisés
+    \item Système de recherche et filtrage
+\end{itemize}
+
+\section{Besoins Non Fonctionnels}
+\subsection{Performance}
+\begin{itemize}
+    \item Temps de chargement optimisé
+    \item Mise en cache efficace
+    \item Optimisation des requêtes API
+\end{itemize}
+
+\subsection{Sécurité}
+\begin{itemize}
+    \item Protection contre les attaques CSRF
+    \item Validation des données
+    \item Gestion sécurisée des sessions
+    \item Chiffrement des données sensibles
+\end{itemize}
+
+\subsection{Maintenabilité}
+\begin{itemize}
+    \item Code modulaire et réutilisable
+    \item Documentation complète
+    \item Tests automatisés
+    \item Standards de codage respectés
+\end{itemize}
+
+% Architecture Technique
+\chapter{Architecture Technique}
+\section{Stack Technologique}
+\subsection{Frontend}
+\begin{itemize}
+    \item Next.js 14 (Framework React)
+    \item TypeScript
+    \item Tailwind CSS pour le styling
+    \item Shadcn/ui pour les composants
+    \item React Query pour la gestion d'état
+\end{itemize}
+
+\subsection{Backend}
+\begin{itemize}
+    \item API RESTful
+    \item Base de données relationnelle
+    \item Système d'authentification JWT
+    \item Middleware de validation
+\end{itemize}
+
+\section{Structure du Projet}
+\subsection{Organisation des Dossiers}
+\begin{itemize}
+    \item \texttt{src/app} : Routes et pages de l'application
+    \item \texttt{src/components} : Composants réutilisables
+    \item \texttt{src/lib} : Utilitaires et configurations
+    \item \texttt{src/hooks} : Hooks React personnalisés
+    \item \texttt{src/utils} : Fonctions utilitaires
+\end{itemize}
+
+\section{APIs et Intégrations}
+\subsection{APIs Internes}
+\begin{itemize}
+    \item API de gestion des utilisateurs
+    \item API de gestion des livraisons
+    \item API de notification
+\end{itemize}
+
+\subsection{APIs Externes}
+\begin{itemize}
+    \item Intégration Google Maps
+    \item Services de géolocalisation
+    \item Services de notification push
+\end{itemize}
+
+% Réalisation du projet
+\chapter{Réalisation du Projet}
+\section{Implémentation Technique}
+\subsection{Architecture Frontend}
+L'application utilise une architecture basée sur les composants React, avec :
+\begin{itemize}
+    \item Composants atomiques réutilisables
+    \item Gestion d'état avec React Query
+    \item Routing avec Next.js App Router
+    \item Styling avec Tailwind CSS
+\end{itemize}
+
+\subsection{Sécurité et Performance}
+\begin{itemize}
+    \item Implémentation de l'authentification JWT
+    \item Optimisation des images et assets
+    \item Mise en cache des requêtes API
+    \item Protection contre les attaques XSS et CSRF
+\end{itemize}
+
+\section{Fonctionnalités Développées}
+\subsection{Module de Livraison}
+\begin{itemize}
+    \item Interface de suivi en temps réel
+    \item Système de géolocalisation
+    \item Gestion des statuts de livraison
+    \item Notifications push
+\end{itemize}
+
+\subsection{Module Utilisateur}
+\begin{itemize}
+    \item Authentification sécurisée
+    \item Gestion des profils
+    \item Tableaux de bord personnalisés
+    \item Historique des livraisons
+\end{itemize}
+
+% Conclusion
+\chapter{Conclusion}
+\section{Bilan du stage}
+Ce stage a permis d'acquérir une expérience pratique significative dans le développement web moderne, en particulier avec Next.js et React.
+
+\section{Perspectives}
+Les compétences acquises pendant ce stage constituent une base solide pour de futurs projets de développement web et ouvrent la voie à l'exploration d'autres technologies modernes.
+
+% Bibliographie
+\chapter*{Bibliographie}
+\begin{thebibliography}{9}
+\bibitem{nextjs} Documentation officielle Next.js, \url{https://nextjs.org/docs}
+\bibitem{react} Documentation officielle React, \url{https://reactjs.org/docs}
+\bibitem{typescript} Documentation TypeScript, \url{https://www.typescriptlang.org/docs}
+\end{thebibliography}
+
+\end{document} 

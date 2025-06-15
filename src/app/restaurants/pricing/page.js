@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Check, X, Clock } from 'lucide-react';
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge"
+import { getApiUrl } from '@/utils/api';
 
 export default function PricingPage() {
     const router = useRouter();
@@ -17,7 +18,7 @@ export default function PricingPage() {
     useEffect(() => {
         const fetchPlans = async () => {
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/visitor/plan', {
+                const response = await fetch(`${getApiUrl('/api/visitor/plan')}`, {
                     headers: {
                         'Accept': 'application/json',
                     }

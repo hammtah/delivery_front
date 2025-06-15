@@ -77,7 +77,7 @@ const sidebarItems = [
     icon: <CreditCard className="w-5 h-5" />
   },
   {
-    title: 'Invoices',
+    title: 'Payroll',
     href: '/restaurants-owner/invoices',
     icon: <Receipt className="w-5 h-5" />
   },

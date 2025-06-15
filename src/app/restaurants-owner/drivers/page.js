@@ -225,6 +225,12 @@ export default function DriversPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredDrivers.map((driver) => (
             <Card key={driver.id} className="overflow-hidden hover:shadow-lg transition-shadow relative">
+                  <Badge 
+                    variant="secondary" 
+                    className='absolute top-4 left-4 text-xs font-medium capitalize'
+                  >
+                    {driver.status === 'busy' ? 'Busy':''}
+                  </Badge>
               <div className="p-6 flex items-center gap-4">
                 {/* Placeholder for driver image */}
                 <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">

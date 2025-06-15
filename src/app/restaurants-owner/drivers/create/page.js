@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { getApiUrl } from '@/utils/api';
 
 export default function CreateDriver() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function CreateDriver() {
     password: '',
     phone: '',
     type: 'both',
+    salary: 0,
     restaurants: []
   });
   const [loading, setLoading] = useState(false);
@@ -33,7 +35,7 @@ export default function CreateDriver() {
   const fetchRestaurants = async () => {
     try {
       setIsLoadingRestaurants(true);
-      const response = await fetch('http://127.0.0.1:8000/api/restaurant',
+      const response = await fetch(`${getApiUrl('/api/restaurant')}`,
         {
           headers: {
             'Accept': 'application/json',
@@ -74,7 +76,7 @@ export default function CreateDriver() {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/driver', {
+      const response = await fetch(`${getApiUrl('/api/driver')}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -134,7 +136,7 @@ export default function CreateDriver() {
                       name="image"
                       value={formData.image}
                       onChange={handleInputChange}
-                      required
+                      
                     />
                   </div>
 
@@ -161,6 +163,18 @@ export default function CreateDriver() {
                       required
                     />
                   </div>
+                {formData.type === 'monthly' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Salary</Label>
+                    <Input
+                      id="salary"
+                      name="salary"
+                      type="number"
+                      value={formData.salary}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                )}
 
                   <div className="space-y-2">
                     <Label htmlFor="type">Driver Type</Label>

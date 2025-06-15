@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
+import { getApiUrl } from '@/utils/api';
 
 export default function RestaurantSignup() {
     const router = useRouter();
@@ -31,11 +32,11 @@ export default function RestaurantSignup() {
         const token = localStorage.getItem('token');
         if (token) {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'restaurants_admin') {
+            // if (user.role === 'restaurants_admin') {
                 router.push('/restaurants-owner/restaurants');
-            } else {
-                router.push('/admin/plans');
-            }
+            // } else {
+                // router.push('/admin/plans');
+            // }
         }
     }, [router]);
 
@@ -47,8 +48,9 @@ export default function RestaurantSignup() {
                 return;
             }
 
+            const url = `${getApiUrl('/api/visitor/plan/')}${formData.plan_id}`;
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/visitor/plan/${formData.plan_id}`, {
+                const response = await fetch(`${url}`, {
                     headers: {
                         'Accept': 'application/json',
                     }
@@ -114,7 +116,7 @@ export default function RestaurantSignup() {
         setLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/restaurants-admin/signup', {
+            const response = await fetch(`${getApiUrl('/api/restaurants-admin/signup')}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

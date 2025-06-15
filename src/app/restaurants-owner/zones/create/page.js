@@ -225,7 +225,7 @@ export default function CreateZonePage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="partial_commission_per_km">Partial Commission Per Km</Label>
+                                <Label htmlFor="partial_commission_per_km">Partial Commission </Label>
                                 <Input
                                     id="partial_commission_per_km"
                                     name="partial_commission_per_km"
@@ -238,7 +238,7 @@ export default function CreateZonePage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="full_commission_per_km">Full Commission_per_km</Label>
+                                <Label htmlFor="full_commission_per_km">Full Commission</Label>
                                 <Input
                                     id="full_commission_per_km"
                                     name="full_commission_per_km"

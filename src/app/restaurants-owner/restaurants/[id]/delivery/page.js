@@ -293,9 +293,9 @@ export default function CreateDeliveryPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    if(selectedDriver.type === 'per_delivery'){
+    if(selectedDriver?.type === 'per_delivery'){
         formData.commission = formData.full_commission;
-    }else if(selectedDriver.type === 'both'){
+    }else if(selectedDriver?.type === 'both'){
         formData.commission = formData.partial_commission;
     }
     try {
@@ -867,7 +867,7 @@ export default function CreateDeliveryPage() {
                     </Alert>
                   )}
                   <div className="grid grid-cols-1 gap-3">
-                    { (selectedDriver.type === 'per_delivery')  && (
+                    { (selectedDriver?.type === 'per_delivery')  && (
                         <div className="space-y-2">
                         <Label htmlFor="full_commission">Full Commission</Label>
                         <div className="flex gap-2">
@@ -901,7 +901,7 @@ export default function CreateDeliveryPage() {
                         </div>
                         </div>
                     )}
-                    { (selectedDriver.type === 'both') && (
+                    { (selectedDriver?.type === 'both') && (
                         <div className="space-y-2">
                         <Label htmlFor="partial_commission">Partial Commission</Label>
                         <div className="flex gap-2">
@@ -1121,13 +1121,13 @@ export default function CreateDeliveryPage() {
 
                       {/* Commissions */}
                       <div className="space-y-2 pt-2 border-t">
-                      { (selectedDriver.type === 'per_delivery')  && (
+                      { (selectedDriver?.type === 'per_delivery')  && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-500">Full Commission</span>
                           <span className="font-medium">{formData.full_commission}%</span>
                         </div>
                     )}
-                    {( selectedDriver.type === 'both') && (
+                    {( selectedDriver?.type === 'both') && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-500">Partial Commission</span>
                           <span className="font-medium">{formData.partial_commission}%</span>

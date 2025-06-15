@@ -18,6 +18,7 @@ import {
 import { MoreVertical, User, CreditCard, PauseCircle, TrendingUp, Users, DollarSign, Activity, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { getApiUrl } from '@/utils/api';
 
 export default function PlanPage({ params }) {
     const [plan, setPlan] = useState(null);
@@ -32,7 +33,7 @@ export default function PlanPage({ params }) {
     useEffect(() => {
         const fetchPlan = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/plan/${params.id}`,
+                const response = await fetch(`${getApiUrl(`/api/plan/${params.id}`)}`,
                     {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`,

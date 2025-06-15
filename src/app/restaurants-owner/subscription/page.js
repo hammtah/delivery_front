@@ -137,7 +137,7 @@ export default function SubscriptionPage() {
 
   const handleDeleteSubscription = async (subscriptionId, e) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this subscription?')) {
+    if (!confirm('Are you sure you want to cancel this subscription?')) {
       return;
     }
 
@@ -156,10 +156,10 @@ export default function SubscriptionPage() {
         // if (selectedSubscription?.sub_id === subscriptionId) {
         //   setSelectedSubscription(null);
         // }
-        toast.success('Subscription deleted successfully');
+        toast.success('Subscription canceled successfully');
         setIsSubscriptionDeleted(true)
       } else {
-        toast.error('Failed to delete subscription');
+        toast.error('Failed to cancel subscription');
       }
     } catch (error) {
       console.error("Error deleting subscription:", error);
@@ -230,7 +230,7 @@ export default function SubscriptionPage() {
                         </TableCell>
                         <TableCell>
                           <Badge className='capitalize' variant={subscription.status === "active" ? "default" : (subscription.status=== "deleted" ? "destructive" : "secondary")}>
-                            {subscription.status}
+                            {subscription.status === 'deleted' ? 'Canceled' : subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -276,7 +276,7 @@ export default function SubscriptionPage() {
                                 onClick={(e) => handleDeleteSubscription(subscription.sub_id, e)}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
+                                Cancel
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

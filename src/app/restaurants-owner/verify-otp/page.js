@@ -52,7 +52,7 @@ export default function VerifyOTPPage() {
         setError(null);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/resend-otp', {
+            const response = await fetch(`${getApiUrl('/api/resend-otp')}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -131,11 +131,11 @@ export default function VerifyOTPPage() {
             
             // Redirect based on user role
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'restaurants_admin') {
+            // if (user.role === 'restaurants_admin') {
                 router.push('/restaurants-owner/restaurants');
-            } else {
+            // } else {
                 router.push('/admin/dashboard');
-            }
+            // }
         } catch (error) {
             setError(error.message);
             toast.error(error.message);
