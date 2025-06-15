@@ -258,7 +258,7 @@ const CreateRestaurantPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 ">
+    <div className="p-4 sm:p-6 md:p-8 ml-0 md:ml-64 max-w-[1200px] mx-auto">
       <h1 className="text-2xl font-bold mb-6">Create New Restaurant</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -270,8 +270,8 @@ const CreateRestaurantPage = () => {
           />
           <div className="mt-4 relative">
             <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                <div className="w-1/3 relative">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="w-full sm:w-1/3 relative">
                   <Input
                     type="text"
                     value={cityQuery}
@@ -283,7 +283,7 @@ const CreateRestaurantPage = () => {
                     className="w-full"
                   />
                   {showCitySuggestions && citySuggestions.length > 0 && (
-                    <div className="absolute z-20 w-full mt-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-55 overflow-auto">
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
                       {citySuggestions.map((city, index) => (
                         <div
                           key={index}
@@ -309,11 +309,11 @@ const CreateRestaurantPage = () => {
                     }
                   }}
                   placeholder="Search restaurant..."
-                  className="w-2/3 mb-72"
+                  className="w-full sm:w-2/3"
                 />
               </div>
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-55 overflow-auto ">
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
                   {suggestions.map((suggestion, index) => (
                     <div
                       key={index}

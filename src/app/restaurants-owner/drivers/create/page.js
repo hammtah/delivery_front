@@ -100,7 +100,7 @@ export default function CreateDriver() {
   };
 
   return (
-    <div className="container mx-auto p-4 w-[70%]">
+    <div className="p-4 sm:p-6 md:p-8 ml-0 md:ml-20 lg:ml-64 transition-all duration-300 max-w-[1200px] mx-auto">
       <h1 className="text-2xl font-bold mb-6">Create New Driver</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -118,7 +118,7 @@ export default function CreateDriver() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
                     <Input
@@ -136,7 +136,6 @@ export default function CreateDriver() {
                       name="image"
                       value={formData.image}
                       onChange={handleInputChange}
-                      
                     />
                   </div>
 
@@ -163,18 +162,18 @@ export default function CreateDriver() {
                       required
                     />
                   </div>
-                {formData.type === 'monthly' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Salary</Label>
-                    <Input
-                      id="salary"
-                      name="salary"
-                      type="number"
-                      value={formData.salary}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                )}
+                  {formData.type === 'monthly' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Salary</Label>
+                      <Input
+                        id="salary"
+                        name="salary"
+                        type="number"
+                        value={formData.salary}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="type">Driver Type</Label>
@@ -198,7 +197,7 @@ export default function CreateDriver() {
 
                 <div className="space-y-4">
                   <Label>Select Restaurants</Label>
-                  <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto min-h-[100px] p-4 border rounded-md">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto min-h-[100px] p-4 border rounded-md">
                     {isLoadingRestaurants ? (
                       <div className="col-span-2 flex items-center justify-center py-8">
                         <div className="flex flex-col items-center gap-2">
