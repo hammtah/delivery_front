@@ -130,188 +130,190 @@ export default function CreateZonePage() {
     };
 
     return (
-        <main className='flex flex-row gap-4 w-[88%] justify-center p-6 ml-auto h-[80vh]'>
-            <div className="w-[80%] h-full">
-                <MapComponent 
-                    key={mapKey}
-                    controls={{
-                        polygon: zoneType === 'polygon',
-                        polyline: false,
-                        rectangle: false,
-                        marker: false,
-                        circle: zoneType === 'radius',
-                        circlemarker: false,
-                        userPosition: true
-                    }}
-                    onCircleCreated={(center, radius) => {
-                        setFormData(prev => ({
-                            ...prev,
-                            center_address: {
+        <div className="p-4 sm:p-6 md:p-8 ml-0 md:ml-20 lg:ml-64 transition-all duration-300 max-w-[1200px] mx-auto">
+            <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-8rem)]">
+                <div className="w-full lg:w-3/4 h-full">
+                    <MapComponent 
+                        key={mapKey}
+                        controls={{
+                            polygon: zoneType === 'polygon',
+                            polyline: false,
+                            rectangle: false,
+                            marker: false,
+                            circle: zoneType === 'radius',
+                            circlemarker: false,
+                            userPosition: true
+                        }}
+                        onCircleCreated={(center, radius) => {
+                            setFormData(prev => ({
+                                ...prev,
+                                center_address: {
+                                    position: {
+                                        name: 'Center Point' + new Date().toISOString(),
+                                        longitude: center.lng,
+                                        latitude: center.lat
+                                    }
+                                },
+                                radius: radius
+                            }));
+                        }}
+                        onPolygonCreated={(coordinates) => {
+                            const points = coordinates.map(coord => ({
                                 position: {
-                                    name: 'Center Point' + new Date().toISOString(),
-                                    longitude: center.lng,
-                                    latitude: center.lat
+                                    name: 'Point',
+                                    longitude: coord.lng,
+                                    latitude: coord.lat
                                 }
-                            },
-                            radius: radius
-                        }));
-                    }}
-                    onPolygonCreated={(coordinates) => {
-                        const points = coordinates.map(coord => ({
-                            position: {
-                                name: 'Point',
-                                longitude: coord.lng,
-                                latitude: coord.lat
-                            }
-                        }));
-                        setFormData(prev => ({
-                            ...prev,
-                            points: points
-                        }));
-                    }}
-                />
-            </div>
-            <Card className="w-[20%] ">
-                <CardHeader>
-                    <CardTitle>Create New Zone</CardTitle>
-                    <CardDescription>Choose the type of zone and draw it on the map.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue="radius" className="w-full " onValueChange={handleZoneTypeChange}>
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="radius">Radius Zone</TabsTrigger>
-                            <TabsTrigger value="polygon">Polygon Zone</TabsTrigger>
-                        </TabsList>
-                        
-                        <form onSubmit={handleSubmit} className="space-y-4 mt-4 ">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Zone Name</Label>
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
+                            }));
+                            setFormData(prev => ({
+                                ...prev,
+                                points: points
+                            }));
+                        }}
+                    />
+                </div>
+                <Card className="w-full lg:w-1/4 h-full h-fit mb-2">
+                    <CardHeader>
+                        <CardTitle>Create New Zone</CardTitle>
+                        <CardDescription>Choose the type of zone and draw it on the map.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Tabs defaultValue="radius" className="w-full" onValueChange={handleZoneTypeChange}>
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="radius">Radius Zone</TabsTrigger>
+                                <TabsTrigger value="polygon">Polygon Zone</TabsTrigger>
+                            </TabsList>
+                            
+                            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Zone Name</Label>
+                                    <Input
+                                        id="name"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="status">Status</Label>
-                                <Select
-                                    value={formData.status}
-                                    onValueChange={(value) => handleSelectChange('status', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="inactive">Inactive</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="status">Status</Label>
+                                    <Select
+                                        value={formData.status}
+                                        onValueChange={(value) => handleSelectChange('status', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="active">Active</SelectItem>
+                                            <SelectItem value="inactive">Inactive</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="user_fees">User Fees</Label>
-                                <Input
-                                    id="user_fees"
-                                    name="user_fees"
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.user_fees}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="user_fees">User Fees</Label>
+                                    <Input
+                                        id="user_fees"
+                                        name="user_fees"
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.user_fees}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="partial_commission_per_km">Partial Commission </Label>
-                                <Input
-                                    id="partial_commission_per_km"
-                                    name="partial_commission_per_km"
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.partial_commission_per_km}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="partial_commission_per_km">Partial Commission </Label>
+                                    <Input
+                                        id="partial_commission_per_km"
+                                        name="partial_commission_per_km"
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.partial_commission_per_km}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="full_commission_per_km">Full Commission</Label>
-                                <Input
-                                    id="full_commission_per_km"
-                                    name="full_commission_per_km"
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.full_commission_per_km}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="full_commission_per_km">Full Commission</Label>
+                                    <Input
+                                        id="full_commission_per_km"
+                                        name="full_commission_per_km"
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.full_commission_per_km}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
 
-                            {zoneType === 'radius' ? (
-                                <>
-                                    <div className="space-y-2">
-                                        <Label>Center Point</Label>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="latitude">Latitude</Label>
-                                                <Input
-                                                    id="latitude"
-                                                    name="center_address.position.latitude"
-                                                    value={formData.center_address.position.latitude}
-                                                    onChange={handleInputChange}
-                                                    readOnly
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="longitude">Longitude</Label>
-                                                <Input
-                                                    id="longitude"
-                                                    name="center_address.position.longitude"
-                                                    value={formData.center_address.position.longitude}
-                                                    onChange={handleInputChange}
-                                                    readOnly
-                                                />
+                                {zoneType === 'radius' ? (
+                                    <>
+                                        <div className="space-y-2">
+                                            <Label>Center Point</Label>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="latitude">Latitude</Label>
+                                                    <Input
+                                                        id="latitude"
+                                                        name="center_address.position.latitude"
+                                                        value={formData.center_address.position.latitude}
+                                                        onChange={handleInputChange}
+                                                        readOnly
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="longitude">Longitude</Label>
+                                                    <Input
+                                                        id="longitude"
+                                                        name="center_address.position.longitude"
+                                                        value={formData.center_address.position.longitude}
+                                                        onChange={handleInputChange}
+                                                        readOnly
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
+                                        <div className="space-y-2">
+                                            <Label htmlFor="radius">Radius (meters)</Label>
+                                            <Input
+                                                id="radius"
+                                                name="radius"
+                                                type="number"
+                                                value={formData.radius}
+                                                onChange={handleInputChange}
+                                                readOnly
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
                                     <div className="space-y-2">
-                                        <Label htmlFor="radius">Radius (meters)</Label>
-                                        <Input
-                                            id="radius"
-                                            name="radius"
-                                            type="number"
-                                            value={formData.radius}
-                                            onChange={handleInputChange}
-                                            readOnly
-                                        />
+                                        <Label>Polygon Points</Label>
+                                        <div className="text-sm text-muted-foreground">
+                                            {formData.points.length > 0 
+                                                ? `${formData.points.length} points defined` 
+                                                : 'Draw a polygon on the map'}
+                                        </div>
                                     </div>
-                                </>
-                            ) : (
-                                <div className="space-y-2">
-                                    <Label>Polygon Points</Label>
-                                    <div className="text-sm text-muted-foreground">
-                                        {formData.points.length > 0 
-                                            ? `${formData.points.length} points defined` 
-                                            : 'Draw a polygon on the map'}
-                                    </div>
-                                </div>
-                            )}
+                                )}
 
-                            <Button  
-                                type="submit" 
-                                className="w-full mb-2"
-                                disabled={!isFormValid()}
-                            >
-                                Create Zone
-                            </Button>
-                        </form>
-                    </Tabs>
-                </CardContent>
-            </Card>
-        </main>
+                                <Button  
+                                    type="submit" 
+                                    className="w-full mb-2"
+                                    disabled={!isFormValid()}
+                                >
+                                    Create Zone
+                                </Button>
+                            </form>
+                        </Tabs>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
     );
 }
