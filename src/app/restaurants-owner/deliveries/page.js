@@ -21,7 +21,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
-import { Loader2 } from "lucide-react";
+import { Loader2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -33,6 +33,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import DriverCard from "@/components/DriverCard";
 
 export default function DeliveriesPage() {
   const [restaurants, setRestaurants] = useState([]);
@@ -41,6 +57,11 @@ export default function DeliveriesPage() {
   const [loading, setLoading] = useState(true);
   const [loadingDeliveries, setLoadingDeliveries] = useState(false);
   const [deliveryToCancel, setDeliveryToCancel] = useState(null);
+  const [deliveryToAffect, setDeliveryToAffect] = useState(null);
+  const [availableDrivers, setAvailableDrivers] = useState([]);
+  const [loadingDrivers, setLoadingDrivers] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState(null);
+  const [affectingDelivery, setAffectingDelivery] = useState(false);
 
   if (localStorage.getItem('token') == null) {
     redirect('/restaurants-owner/login');
@@ -125,12 +146,84 @@ export default function DeliveriesPage() {
     }
   };
 
+  const fetchAvailableDrivers = async () => {
+    if (!selectedRestaurant) return;
+    
+    setLoadingDrivers(true);
+    try {
+      const response = await fetch(getApiUrl(`/api/restaurant/${selectedRestaurant}/available-drivers`), {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch available drivers');
+      }
+      
+      const data = await response.json();
+      setAvailableDrivers(data.data);
+    } catch (error) {
+      toast.error('Failed to fetch available drivers: ' + error.message);
+    } finally {
+      setLoadingDrivers(false);
+    }
+  };
+
+  const handleAffectToDriver = async () => {
+    if (!selectedDriver || !deliveryToAffect) return;
+    
+    setAffectingDelivery(true);
+    try {
+      const response = await fetch(getApiUrl(`/api/driver/${selectedDriver.id}/assign-deliveries`), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            deliveries: [deliveryToAffect]
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to assign driver to delivery');
+      }
+      
+      toast.success('Driver assigned successfully!');
+      
+      // Refetch deliveries after successful assignment
+      if (selectedRestaurant) {
+        fetchDeliveries(selectedRestaurant);
+      }
+      
+      // Close dialog and reset state
+      setDeliveryToAffect(null);
+      setSelectedDriver(null);
+    } catch (error) {
+      toast.error('Failed to assign driver: ' + error.message);
+    } finally {
+      setAffectingDelivery(false);
+    }
+  };
+
+  const openAffectDriverDialog = (deliveryId) => {
+    setDeliveryToAffect(deliveryId);
+    setSelectedDriver(null);
+    fetchAvailableDrivers();
+  };
+
   const getStatusBadge = (status) => {
     const statusColors = {
       assigned: 'bg-blue-500',
       picked_up: 'bg-yellow-500',
       delivered: 'bg-green-500',
-      cancelled: 'bg-red-500'
+      cancelled: 'bg-red-500',
+      pending: 'bg-orange-500',
+      problem: 'bg-red-600'
     };
 
     return (
@@ -169,6 +262,64 @@ export default function DeliveriesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!deliveryToAffect} onOpenChange={() => setDeliveryToAffect(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assign Driver to Delivery</DialogTitle>
+            <DialogDescription>
+              Select a driver to assign to this delivery.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {loadingDrivers ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-500 mr-2" />
+                <span className="text-gray-500">Loading drivers...</span>
+              </div>
+            ) : availableDrivers.length > 0 ? (
+              <div className="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
+                {availableDrivers.map(driver => (
+                  <DriverCard
+                    key={driver.id}
+                    driver={driver}
+                    isSelected={selectedDriver?.id === driver.id}
+                    onClick={() => setSelectedDriver(driver)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No drivers are currently available.
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeliveryToAffect(null)}
+              disabled={affectingDelivery}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAffectToDriver}
+              disabled={!selectedDriver || affectingDelivery}
+            >
+              {affectingDelivery ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Assigning...
+                </>
+              ) : (
+                'Assign Driver'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Deliveries</h1>
@@ -259,13 +410,27 @@ export default function DeliveriesPage() {
                     </TableCell>
                     <TableCell>
                       {delivery.status !== 'cancelled' && delivery.status !== 'delivered' && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => setDeliveryToCancel(delivery.id)}
-                        >
-                          Cancel
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {(delivery.status === 'pending' || delivery.status === 'problem') && (
+                              <DropdownMenuItem onClick={() => openAffectDriverDialog(delivery.id)}>
+                                Affect to Driver
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              onClick={() => setDeliveryToCancel(delivery.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              Cancel
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </TableCell>
                   </TableRow>
