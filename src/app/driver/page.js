@@ -24,6 +24,8 @@ export default function DriverPage() {
   // PWA Installation prompt
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
+
   useEffect(() => {
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -99,8 +101,10 @@ export default function DriverPage() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log(data)
         // setDeliveries(data.data || []);
-        setDeliveries(data || []);
+        setDeliveries(data.data || []);
+        setIsOnline(data.driver.status === 'online' || data.driver.status === 'busy');
       }
     } catch (error) {
       console.error('Error fetching available deliveries:', error);
@@ -113,7 +117,7 @@ export default function DriverPage() {
   const fetchDeliveryHistory = async () => {
     try {
       setLoadingHistory(true);
-      const response = await fetch(getApiUrl('/api/driver/delivery-history'), {
+      const response = await fetch(getApiUrl('/api/driver/deliveries'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Accept': 'application/json'
@@ -133,12 +137,14 @@ export default function DriverPage() {
 
   const acceptDelivery = async (deliveryId) => {
     try {
-      const response = await fetch(getApiUrl(`/api/driver/accept-delivery/${deliveryId}`), {
+      const response = await fetch(getApiUrl(`/api/driver/assign-delivery`), {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({ delivery_id: deliveryId })
       });
 
       if (response.ok) {
@@ -164,11 +170,12 @@ export default function DriverPage() {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: status ? 'online' : 'offline' })
+        // body: JSON.stringify({ status: status ? 'online' : 'offline' })
       });
-
+      const data = await response.json();
+      console.log(data)
       if (response.ok) {
-        setIsOnline(status);
+        setIsOnline(data.status === 'online'? true : false);
         toast.success(status ? 'You are now online' : 'You are now offline');
       } else {
         throw new Error('Failed to update status');
@@ -243,10 +250,45 @@ export default function DriverPage() {
                 <CardTitle className="text-lg">Current Deliveries</CardTitle>
               </CardHeader>
               <CardContent>
-                {currentDeliveries.length > 0 ? (
+                {selectedDelivery ? (
+                  <div className="space-y-4">
+                    <Button variant="outline" onClick={() => setSelectedDelivery(null)}>
+                      ← Back to Deliveries
+                    </Button>
+                    <div className="space-y-3 p-3 border rounded-lg bg-card">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-5 w-5 text-primary" />
+                        <span className="font-medium">{selectedDelivery.restaurant?.name || 'Restaurant'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <User className="h-5 w-5 text-primary" />
+                        <span>{selectedDelivery.client?.user?.name || 'Customer'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5 text-primary" />
+                        <span>{selectedDelivery.address?.street}, {selectedDelivery.address?.city}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-primary" />
+                        <span>Expected: {new Date(selectedDelivery.etime_arrival).toLocaleTimeString()}</span>
+                      </div>
+                      {/* Add more delivery details as needed */}
+                    </div>
+                    {/* Map Placeholder */}
+                    <div className="h-[200px] bg-muted rounded-lg flex items-center justify-center">
+                      <p className="text-muted-foreground">Map Tracking (Coming Soon)</p>
+                    </div>
+                    <Button className="w-full" variant="default" onClick={() => router.push(`/driver/${selectedDelivery.id}/scan-qr`)}>
+                      Confirm Delivery
+                    </Button>
+                  </div>
+                ) : currentDeliveries.length > 0 ? (
                   <div className="space-y-4">
                     {currentDeliveries.map((delivery) => (
-                      <div key={delivery.id} className="space-y-3 p-3 border rounded-lg bg-card">
+                      <div key={delivery.id} className="space-y-3 p-3 border rounded-lg bg-card relative">
+                        <Badge className="absolute top-2 right-2" variant="outline">
+                          {delivery.created_at ? new Date(delivery.created_at).toLocaleString() : ''}
+                        </Badge>
                         <div className="flex items-center gap-2">
                           <Package className="h-5 w-5 text-primary" />
                           <span className="font-medium">{delivery.restaurant?.name || 'Restaurant'}</span>
@@ -263,7 +305,7 @@ export default function DriverPage() {
                           <Clock className="h-5 w-5 text-primary" />
                           <span>Expected: {new Date(delivery.etime_arrival).toLocaleTimeString()}</span>
                         </div>
-                        <Button className="w-full mt-2">
+                        <Button className="w-full mt-2" onClick={() => setSelectedDelivery(delivery)}>
                           <Navigation className="mr-2 h-4 w-4" />
                           Navigate
                         </Button>
@@ -275,68 +317,74 @@ export default function DriverPage() {
                 )}
               </CardContent>
             </Card>
-
-            {/* Available Deliveries */}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Available Deliveries</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingDeliveries ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                  </div>
-                ) : deliveries.length > 0 ? (
-                  <div className="space-y-3">
-                    {deliveries.map((delivery) => (
-                      <div
-                        key={delivery.id}
-                        className="p-3 border rounded-lg space-y-2 bg-card"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold">{delivery.restaurant?.name || 'Restaurant'}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {delivery.client?.user?.name || 'Customer'}
-                            </p>
-                          </div>
-                          {getStatusBadge(delivery.status)}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{delivery.address?.street}, {delivery.address?.city}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span>Expected: {new Date(delivery.etime_arrival).toLocaleTimeString()}</span>
-                        </div>
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => acceptDelivery(delivery.id)}
-                        >
-                          Accept Delivery
-                        </Button>
+            {/* Only show the map view and available deliveries when NOT viewing a selected delivery */}
+            {!selectedDelivery && (
+              <>
+                {/* Available Deliveries */}
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Available Deliveries</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingDeliveries ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">No available deliveries</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Map View */}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Navigation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[200px] bg-muted rounded-lg flex items-center justify-center">
-                  <p className="text-muted-foreground">Map View (Integration Pending)</p>
-                </div>
-              </CardContent>
-            </Card>
+                    ) : deliveries.length > 0 ? (
+                      <div className="space-y-3">
+                        {deliveries.map((delivery) => (
+                          <div
+                            key={delivery.id}
+                            className="p-3 border rounded-lg space-y-2 bg-card relative"
+                          >
+                            <Badge className="absolute top-2 right-2" variant="outline">
+                              {delivery.created_at ? new Date(delivery.created_at).toLocaleString() : ''}
+                            </Badge>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-semibold">{delivery.restaurant?.name || 'Restaurant'}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {delivery.client?.user?.name || 'Customer'}
+                                </p>
+                              </div>
+                              {getStatusBadge(delivery.status)}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4" />
+                              <span>{delivery.address?.street}, {delivery.address?.city}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Clock className="h-4 w-4" />
+                              <span>Expected: {new Date(delivery.etime_arrival).toLocaleTimeString()}</span>
+                            </div>
+                            <Button
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => acceptDelivery(delivery.id)}
+                            >
+                              Accept Delivery
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-center py-4">No available deliveries</p>
+                    )}
+                  </CardContent>
+                </Card>
+                {/* Map View */}
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Navigation</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[200px] bg-muted rounded-lg flex items-center justify-center">
+                      <p className="text-muted-foreground">Map View (Integration Pending)</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </>
         )}
 
