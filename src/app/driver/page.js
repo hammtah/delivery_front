@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { getApiUrl } from "@/utils/api";
 import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
+import MapComponent from '@/components/MapComponent';
 
 export default function DriverPage() {
   const router = useRouter();
@@ -241,7 +242,7 @@ export default function DriverPage() {
       </div>
 
       {/* Main Content */}
-      <div className="pt-16 px-4 space-y-4">
+      <div className="pt-16  space-y-4">
         {activeTab === 'home' && (
           <>
             {/* Current Deliveries Card */}
@@ -276,8 +277,21 @@ export default function DriverPage() {
                     </div>
                     {/* Map Placeholder */}
                     <div className="h-[200px] bg-muted rounded-lg flex items-center justify-center">
-                      <p className="text-muted-foreground">Map Tracking (Coming Soon)</p>
+                      {/* <p className="text-muted-foreground">Map Tracking (Coming Soon)</p> */}
+                      <MapComponent
+                      controls={{
+                        polygon: false,
+                        polyline: false,
+                        rectangle: false,
+                        marker: false,
+                        circle: false,
+                        circlemarker: false,
+                        userPosition: true
+                      }} extra={false}
+                    />
                     </div>
+
+                    {/* Confirm Delivery Button */}
                     <Button className="w-full" variant="default" onClick={() => router.push(`/driver/${selectedDelivery.id}/scan-qr`)}>
                       Confirm Delivery
                     </Button>

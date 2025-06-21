@@ -19,7 +19,7 @@ const MapComponent = ({ addressForm, setAddressForm, controls={
     circle: true,
     circlemarker: false,
     userPosition: true
-  }, onCircleCreated, onPolygonCreated, initialZoneData, editing=true, changeAddressFormData, initialPosition }) => {
+  }, onCircleCreated, onPolygonCreated, initialZoneData, editing=true, changeAddressFormData, initialPosition, extra=true }) => {
   const mapRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [cityQuery, setCityQuery] = useState('');
@@ -384,6 +384,7 @@ const addCircleMarker = (lat, lng, popupText = '') => {
   return (
     <>
       <div id="map" ref={mapRef} style={{ height: '100%', width: '100%' }} />
+      {extra && (
       <div className="flex flex-col gap-2 p-4">
         <div className="relative flex items-center">
           <Input
@@ -487,6 +488,7 @@ const addCircleMarker = (lat, lng, popupText = '') => {
           )}
         </div>
       </div>
+      )}
     </>
   );
 };

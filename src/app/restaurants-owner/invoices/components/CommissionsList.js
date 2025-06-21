@@ -118,9 +118,30 @@ export default function CommissionsList() {
         body: JSON.stringify({ deliveries: selectedDeliveries }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) throw new Error('Payment failed');
 
-      toast.success("Commissions paid successfully");
+      // Show toast with invoice link if invoice is returned
+      if (data.invoice && data.invoice.id) {
+        toast.success(
+          <span>
+            Invoice created!{' '}
+            <a
+              href={`/restaurants-owner/invoice/${data.invoice.id}`}
+              onClick={e => {
+                e.preventDefault();
+                window.location.href = `/restaurants-owner/invoice/${data.invoice.id}`;
+              }}
+              className="underline text-blue-600 hover:text-blue-800"
+            >
+              View Invoice
+            </a>
+          </span>
+        );
+      } else {
+        toast.success("Commissions paid successfully");
+      }
       fetchCommissions();
       setSelectedDeliveries([]);
     } catch (error) {
