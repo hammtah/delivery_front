@@ -94,22 +94,22 @@ export default function ClientsPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen ml-[12%]">
+            <div className="flex items-center justify-center min-h-screen">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
             </div>
         );
     }
 
     return (
-        <main className="p-6 ml-[12%] w-[88%]">
-            <div className="flex flex-col gap-6">
-                <div className="flex justify-between items-center">
+        <main className="flex-1 p-4 sm:p-6 lg:ml-64">
+            <div className="flex flex-col gap-4 sm:gap-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold">Clients</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold">Clients</h1>
                         <p className="text-gray-500 mt-1">Manage your client list and their addresses</p>
                     </div>
                     <Link href="/restaurants-owner/client/create">
-                        <Button className="flex items-center gap-2">
+                        <Button className="flex items-center gap-2 w-full sm:w-auto">
                             <Plus className="h-4 w-4" />
                             Add New Client
                         </Button>
@@ -120,16 +120,16 @@ export default function ClientsPage() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                         placeholder="Search clients by name, email, or phone..."
-                        className="pl-10"
+                        className="pl-10 w-full"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {filteredClients.map((client) => (
-                        <Card key={client.id} className="group hover:shadow-lg transition-shadow duration-200">
-                            <CardContent className="p-6">
+                        <Card key={client.id} className="group hover:shadow-lg transition-shadow duration-200 relative">
+                            <CardContent className="p-6 ">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="bg-primary/10 p-2 rounded-full">
@@ -140,7 +140,7 @@ export default function ClientsPage() {
                                             <p className="text-sm text-gray-500">{client.user.email}</p>
                                         </div>
                                     </div>
-                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex gap-2 absolute right-2 top-2">
                                         <Button 
                                             variant="ghost" 
                                             size="icon" 

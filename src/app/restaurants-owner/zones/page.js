@@ -236,8 +236,8 @@ export default function ZonesDashboard() {
                     <span className="font-medium">{zone.restaurants?.length || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">Type</span>
-                    <span className="font-medium capitalize">{zone.type}</span>
+                    <span className="text-sm text-gray-500">Deliveries</span>
+                    <span className="font-medium capitalize">0</span>
                   </div>
                 </div>
 

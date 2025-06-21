@@ -122,7 +122,7 @@ if(localStorage.getItem('token')==null){
                 <div className="flex items-center gap-2">
                   <GlowingHeartCircle size="12px" color={`${restaurant.status === 'active' ? 'green' : 'red'}`}/>
                   <span className="text-sm font-medium text-gray-600">
-                    {restaurant.status}
+                    {restaurant.status === 'active' ? 'Open' : 'Closed'}
                   </span>
                 </div>
               </div>
@@ -139,7 +139,8 @@ if(localStorage.getItem('token')==null){
                       </DropdownMenuItem>
                     </Link>
                     <DropdownMenuItem className='cursor-pointer'>
-                      <Trash className='w-4 h-4 mr-2' /> Delete
+                      <Trash className='w-4 h-4 mr-2' 
+                    /> Delete
                     </DropdownMenuItem>
                     <Link href={`/restaurants-owner/restaurants/${restaurant.id}/working-hours`}>
                       <DropdownMenuItem className='cursor-pointer'>
