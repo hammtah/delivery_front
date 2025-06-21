@@ -126,7 +126,6 @@ export default function CreateAddressPage({ params }) {
                 name="neighborhood"
                 value={formData.neighborhood}
                 onChange={handleChange}
-                required
               />
             </div>
 
@@ -147,7 +146,6 @@ export default function CreateAddressPage({ params }) {
                 name="postal_code"
                 value={formData.postal_code}
                 onChange={handleChange}
-                required
               />
             </div>
 
@@ -158,7 +156,6 @@ export default function CreateAddressPage({ params }) {
                 name="province"
                 value={formData.province}
                 onChange={handleChange}
-                required
               />
             </div>
 

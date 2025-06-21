@@ -16,7 +16,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-
 export default function ClientsPage() {
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -223,6 +222,11 @@ export default function ClientsPage() {
                         <DialogDescription>
                             Manage addresses and zones for {selectedClient?.user?.name}
                         </DialogDescription>
+                        <Link href={`/restaurants-owner/client/${selectedClient?.id}/address/create`} >
+                            <Button variant="outline" >
+                                    Add Address<Plus className="h-4 w-4 mr-2" />
+                            </Button>
+                        </Link>
                     </DialogHeader>
                     <div className="mt-4 space-y-4 overflow-y-auto max-h-[500px]">
                         {selectedClient?.addresses.map((address) => (
