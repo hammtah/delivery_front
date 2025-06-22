@@ -43,7 +43,7 @@ const PaymentForm = ({ clientSecret, subscriptionId, paymentId }) => {
             confirmParams: {
                 // This return_url is crucial for handling redirects for 3D Secure or other actions.
                 // Stripe will redirect the user to this URL after the payment flow is complete.
-                return_url: `${window.location.origin}/payment/success?payment_intent_id=${paymentId}`, // Pass paymentId for verification
+                return_url: window !== undefined ? `${window.location.origin}/payment/success?payment_intent_id=${paymentId}`:'', // Pass paymentId for verification
             },
             redirect: 'if_required' // This is the default, but good to be explicit
         });

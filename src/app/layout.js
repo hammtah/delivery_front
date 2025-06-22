@@ -4,21 +4,48 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// export const metadata = {
+//   title: "Driver Delivery App",
+//   description: "A delivery driver application for managing deliveries",
+//   manifest: "/manifest.json",
+//     themeColor: "#000000",
+//     viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+
+//   appleWebApp: {
+//     capable: true,
+//     statusBarStyle: "default",
+//     title: "Driver App",
+//   },
+//   formatDetection: {
+//     telephone: false,
+//   },
+// };
+  
+
 export const metadata = {
-  title: "Driver Delivery App",
-  description: "A delivery driver application for managing deliveries",
-  manifest: "/manifest.json",
-  themeColor: "#000000",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Driver App",
-  },
-  formatDetection: {
-    telephone: false,
-  },
-};
+    title: "Driver Delivery App",
+    description: "A delivery driver application for managing deliveries",
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "Driver App",
+    },
+    formatDetection: {
+      telephone: false,
+    },
+  };
+  
+  // themeColor and viewport must be declared separately
+  export const viewport = {
+    themeColor: "#000000",
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: "no",
+  };
+
+
 
 export default function RootLayout({ children }) {
   return (

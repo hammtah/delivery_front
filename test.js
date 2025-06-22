@@ -30,5 +30,5 @@ function initMap() {
     bermudaTriangle.setMap(map);
   }
   
-  window.initMap = initMap;
+//   window.initMap = initMap;
   

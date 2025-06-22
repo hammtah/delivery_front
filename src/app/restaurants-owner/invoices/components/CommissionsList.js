@@ -131,7 +131,8 @@ export default function CommissionsList() {
               href={`/restaurants-owner/invoice/${data.invoice.id}`}
               onClick={e => {
                 e.preventDefault();
-                window.location.href = `/restaurants-owner/invoice/${data.invoice.id}`;
+                if (typeof window !== 'undefined') 
+                    window.location.href = `/restaurants-owner/invoice/${data.invoice.id}`;
               }}
               className="underline text-blue-600 hover:text-blue-800"
             >
