@@ -5,7 +5,8 @@ import { Plus, Trash2, Clock, Power, Calendar, ChevronRight } from 'lucide-react
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-
+import Link from 'next/link';
+import { Button } from "@/components/ui/button";
 const DAYS_OF_WEEK = [
   'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
 ];
@@ -225,13 +226,18 @@ export default function WorkingHoursPage() {
               {workingHours.map((program) => (
                 <div
                   key={program.id}
-                  className={`p-4 cursor-pointer transition-colors ${
+                  className={`p-4 relative cursor-pointer transition-colors ${
                     selectedProgram?.id === program.id 
                       ? 'bg-blue-50 border-l-4 border-blue-500' 
                       : 'hover:bg-gray-50'
                   }`}
                   onClick={() => setSelectedProgram(program)}
                 >
+                <Link href={`/restaurants-owner/restaurants/${params.id}/working-hours/${program.id}`} key={program.id} className=" absolute bottom-1 right-1">
+                    <Button variant='outline'>
+                        Edit 
+                    </Button>
+                </Link>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                     <div>
                       <h3 className="font-medium text-gray-800">{program.name}</h3>

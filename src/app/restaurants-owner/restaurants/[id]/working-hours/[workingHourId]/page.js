@@ -142,7 +142,7 @@ export default function EditWorkingHoursPage() {
           is_active: workingHour.is_active,
           is_auto_active: workingHour.is_auto_active,
           'working-days': workingHour.working_days.map(day => ({
-            eday: day.eday.toLowerCase(),
+            eday: day.eday?.toLowerCase(),
             times: day.times.map(time => ({
               start: time.start,
               end: time.end

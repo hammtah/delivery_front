@@ -15,6 +15,7 @@ import { User, Phone, Mail, MapPin, Search, Home, Building2, Navigation, CircleD
 import Image from "next/image";
 import { getApiUrl } from '@/utils/api';
 import { Badge } from "@/components/ui/badge";
+import Link from 'next/link';
 export default function CreateDeliveryPage() {
   const router = useRouter();
   const params = useParams();
@@ -342,11 +343,18 @@ export default function CreateDeliveryPage() {
       }
 
       const data = await response.json();
-      toast.success('Delivery created successfully!');
+      toast.success(
+        <span>
+        Delivery #{data.data.id} created successfully!{" "}
+        <Link href={`restaurants-owner/deliveries`} className="underline text-blue-500">
+          View all
+        </Link>
+      </span>
+      );
     //   router.push(`/restaurants-owner/restaurants/${params.id}`);
     } catch (err) {
       setError(err.message || "Failed to create delivery");
-      toast.error(err.message || "Failed to create delivery");
+      toast.error(err.error || "Failed to create delivery");
     } finally {
       setLoading(false);
     }
