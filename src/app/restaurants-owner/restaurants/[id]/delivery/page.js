@@ -11,10 +11,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User, Phone, Mail, MapPin, Search, Home, Building2, Navigation, CircleDot, Plus, Minus, Clock, AlertCircleIcon, Check } from "lucide-react";
+import { User, Phone, Mail, MapPin, Search, Home, Building2, Navigation, CircleDot, Plus, Minus, Clock, AlertCircleIcon, Check, Store } from "lucide-react";
 import Image from "next/image";
 import { getApiUrl } from '@/utils/api';
-
+import { Badge } from "@/components/ui/badge";
 export default function CreateDeliveryPage() {
   const router = useRouter();
   const params = useParams();
@@ -25,6 +25,8 @@ export default function CreateDeliveryPage() {
   const [loadingClients, setLoadingClients] = useState(true);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
+  const [restaurant, setRestaurant] = useState(null);
+  const [loadingRestaurant, setLoadingRestaurant] = useState(true);
   const [formData, setFormData] = useState({
     client_id: "",
     restaurant_id: parseInt(params.id),
@@ -102,7 +104,32 @@ export default function CreateDeliveryPage() {
     }
   };
 
+  const fetchRestaurant = async () => {
+    setLoadingRestaurant(true);
+    try {
+      const response = await fetch(getApiUrl(`/api/restaurant/${params.id}`), {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch restaurant details');
+      }
+      
+      const data = await response.json();
+      setRestaurant(data.data);
+    } catch (error) {
+      toast.error('Failed to fetch restaurant details: ' + error.message);
+    } finally {
+      setLoadingRestaurant(false);
+    }
+  };
+
   useEffect(() => {
+    fetchRestaurant();
     const fetchClients = async () => {
       setLoadingClients(true);
       try {
@@ -188,7 +215,7 @@ export default function CreateDeliveryPage() {
   const fetchItems = async () => {
     setLoadingItems(true);
     try {
-      const response = await fetch(getApiUrl('/api/item'), {
+      const response = await fetch(getApiUrl(`/api/restaurant/${params.id}/items`), {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -355,6 +382,18 @@ export default function CreateDeliveryPage() {
 
   const getItemQuantity = (itemId) => {
     return formData.items.find(item => item.id === itemId)?.quantity || 0;
+  };
+
+  const formatRestaurantAddress = (address) => {
+    if (!address) return 'No address provided';
+    const parts = [
+      address.street,
+    //   address.street_code,
+      address.city,
+    //   address.province,
+    //   address.postal_code
+    ].filter(Boolean);
+    return parts.join(', ');
   };
 
   const filteredItems = items.filter(item => {
@@ -991,6 +1030,30 @@ export default function CreateDeliveryPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Column - Order Details */}
               <div className="lg:col-span-2 space-y-6">
+                {/* Restaurant Information */}
+                {restaurant && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Store className="h-4 w-4" />
+                        Restaurant Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">Name:</span>
+                          <span className="text-gray-600">{restaurant.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">Address:</span>
+                          <span className="text-gray-600">{formatRestaurantAddress(restaurant.address)}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Client & Delivery Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card>
@@ -1191,12 +1254,24 @@ export default function CreateDeliveryPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6 pb-24 pl-64 pr-4">
-      <div className="flex justify-between items-center w-[90%] mx-auto">
+      <div className="flex justify-between items-center w-[90%] mx-auto gap-2">
         <h1 className="text-3xl font-bold">Create New Delivery</h1>
+
+        
+      {/* Restaurant Information */}
+      {restaurant && (
+        <Badge variant='outline' className="mx-auto flex items-center gap-2 w-fit">
+                <Store className="h-3 w-3 text-primary" />
+                <h2 className=" font-semibold" style={{fontSize: '12px'}}>{restaurant.name}</h2>
+                <span className="" style={{fontSize: '8px'}}>({formatRestaurantAddress(restaurant.address)})</span>
+        </Badge>
+      )}
+
         <Button variant="outline" onClick={() => router.back()}>
           Back
         </Button>
       </div>
+
 
       {error && (
         <Alert variant="destructive">
