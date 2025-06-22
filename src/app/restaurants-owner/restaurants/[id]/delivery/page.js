@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import Image from "next/image";
 import { getApiUrl } from '@/utils/api';
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 export default function CreateDeliveryPage() {
   const router = useRouter();
   const params = useParams();
@@ -63,6 +65,10 @@ export default function CreateDeliveryPage() {
     partial_commission: 'default',
     user_fees: 'default'
   });
+
+  const [restaurantDialogOpen, setRestaurantDialogOpen] = useState(false);
+  const [allRestaurants, setAllRestaurants] = useState([]);
+  const [loadingAllRestaurants, setLoadingAllRestaurants] = useState(false);
 
   const steps = [
     { id: 1, title: "Client Details", description: "Select client and delivery address" },
@@ -339,22 +345,25 @@ export default function CreateDeliveryPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create delivery');
+        console.log(errorData)
+        toast.error(errorData.error || "Failed to create delivery");
+        throw new Error(errorData || 'Failed to create delivery');
       }
 
       const data = await response.json();
       toast.success(
         <span>
         Delivery #{data.data.id} created successfully!{" "}
-        <Link href={`restaurants-owner/deliveries`} className="underline text-blue-500">
+        <Link href={`/restaurants-owner/deliveries`} className="underline text-blue-500">
           View all
         </Link>
       </span>
       );
     //   router.push(`/restaurants-owner/restaurants/${params.id}`);
     } catch (err) {
-      setError(err.message || "Failed to create delivery");
-      toast.error(err.error || "Failed to create delivery");
+        console.log(err.error)
+      setError(err.error || "Failed to create delivery");
+    //   toast.error(err.error || "Failed to create delivery");
     } finally {
       setLoading(false);
     }
@@ -1040,26 +1049,51 @@ export default function CreateDeliveryPage() {
               <div className="lg:col-span-2 space-y-6">
                 {/* Restaurant Information */}
                 {restaurant && (
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Store className="h-4 w-4" />
-                        Restaurant Information
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium">Name:</span>
-                          <span className="text-gray-600">{restaurant.name}</span>
+                  <>
+                    <Badge
+                      variant='outline'
+                      className="mx-auto flex items-center gap-2 w-fit cursor-pointer hover:bg-primary/10 transition"
+                      onClick={() => setRestaurantDialogOpen(true)}
+                      tabIndex={0}
+                      role="button"
+                      aria-label="Switch restaurant"
+                    >
+                      <Store className="h-3 w-3 text-primary" />
+                      <h2 className=" font-semibold" style={{fontSize: '12px'}}>{restaurant.name}</h2>
+                      <span className="" style={{fontSize: '8px'}}>({formatRestaurantAddress(restaurant.address)})</span>
+                    </Badge>
+                    <Dialog open={restaurantDialogOpen} onOpenChange={setRestaurantDialogOpen}>
+                      <DialogContent className="max-w-lg">
+                        <DialogHeader>
+                          <DialogTitle>Switch Restaurant</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                          {loadingAllRestaurants ? (
+                            <div className="p-4 text-center text-gray-500">Loading restaurants...</div>
+                          ) : allRestaurants.length === 0 ? (
+                            <div className="p-4 text-center text-gray-500">No restaurants found.</div>
+                          ) : (
+                            allRestaurants.map(rest => (
+                              <div
+                                key={rest.id}
+                                className={`flex items-center gap-3 p-3 rounded cursor-pointer transition hover:bg-primary/10 ${rest.id === restaurant.id ? 'bg-primary/5' : ''}`}
+                                onClick={() => handleSelectRestaurant(rest)}
+                              >
+                                <Store className="h-4 w-4 text-primary" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-sm truncate">{rest.name}</span>
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${rest.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{rest.status === 'active' ? 'Open' : 'Closed'}</span>
+                                  </div>
+                                  <div className="text-xs text-gray-500 truncate">{formatRestaurantAddress(rest.address)}</div>
+                                </div>
+                              </div>
+                            ))
+                          )}
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium">Address:</span>
-                          <span className="text-gray-600">{formatRestaurantAddress(restaurant.address)}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </DialogContent>
+                    </Dialog>
+                  </>
                 )}
 
                 {/* Client & Delivery Info */}
@@ -1260,6 +1294,41 @@ export default function CreateDeliveryPage() {
     }
   };
 
+  // Fetch all restaurants for the dialog
+  const fetchAllRestaurants = useCallback(async () => {
+    setLoadingAllRestaurants(true);
+    try {
+      const response = await fetch(getApiUrl('/api/restaurant'), {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch restaurants');
+      const data = await response.json();
+      setAllRestaurants(data.data);
+    } catch (err) {
+      toast.error('Failed to fetch restaurants: ' + err.message);
+    } finally {
+      setLoadingAllRestaurants(false);
+    }
+  }, []);
+
+  // Open dialog and fetch restaurants if not already loaded
+  const handleOpenRestaurantDialog = () => {
+    setRestaurantDialogOpen(true);
+    if (allRestaurants.length === 0) fetchAllRestaurants();
+  };
+
+  // Handle restaurant selection from dialog
+  const handleSelectRestaurant = (rest) => {
+    setRestaurantDialogOpen(false);
+    // Update the URL and state to switch restaurant
+    router.replace(`/restaurants-owner/restaurants/${rest.id}/delivery`);
+    // Optionally, you could also update state directly if you want to avoid navigation
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6 pb-24 pl-64 pr-4">
       <div className="flex justify-between items-center w-[90%] mx-auto gap-2">
@@ -1268,11 +1337,51 @@ export default function CreateDeliveryPage() {
         
       {/* Restaurant Information */}
       {restaurant && (
-        <Badge variant='outline' className="mx-auto flex items-center gap-2 w-fit">
-                <Store className="h-3 w-3 text-primary" />
-                <h2 className=" font-semibold" style={{fontSize: '12px'}}>{restaurant.name}</h2>
-                <span className="" style={{fontSize: '8px'}}>({formatRestaurantAddress(restaurant.address)})</span>
-        </Badge>
+        <>
+          <Badge
+            variant='outline'
+            className="mx-auto flex items-center gap-2 w-fit cursor-pointer hover:bg-primary/10 transition"
+            onClick={handleOpenRestaurantDialog}
+            tabIndex={0}
+            role="button"
+            aria-label="Switch restaurant"
+          >
+            <Store className="h-3 w-3 text-primary" />
+            <h2 className=" font-semibold" style={{fontSize: '12px'}}>{restaurant.name}</h2>
+            <span className="" style={{fontSize: '8px'}}>({formatRestaurantAddress(restaurant.address)})</span>
+          </Badge>
+          <Dialog open={restaurantDialogOpen} onOpenChange={setRestaurantDialogOpen}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Switch Restaurant</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {loadingAllRestaurants ? (
+                  <div className="p-4 text-center text-gray-500">Loading restaurants...</div>
+                ) : allRestaurants.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">No restaurants found.</div>
+                ) : (
+                  allRestaurants.map(rest => (
+                    <div
+                      key={rest.id}
+                      className={`flex items-center gap-3 p-3 rounded cursor-pointer transition hover:bg-primary/10 ${rest.id === restaurant.id ? 'bg-primary/5' : ''}`}
+                      onClick={() => handleSelectRestaurant(rest)}
+                    >
+                      <Store className="h-4 w-4 text-primary" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm truncate">{rest.name}</span>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${rest.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{rest.status === 'active' ? 'Open' : 'Closed'}</span>
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">{formatRestaurantAddress(rest.address)}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
       )}
 
         <Button variant="outline" onClick={() => router.back()}>

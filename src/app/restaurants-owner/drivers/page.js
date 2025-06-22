@@ -8,12 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Mail, Phone } from "lucide-react";
+import { Info, Loader2, Mail, Phone } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { getApiUrl } from '@/utils/api';
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 
 const statusColors = {
   online: 'bg-green-700',
@@ -23,9 +24,9 @@ const statusColors = {
 };
 
 const statusLabels = {
-  online: 'Active',
+  online: 'Online',
   offline: 'Offline',
-  busy: 'Busy',
+  busy: 'Online',
   suspended: 'Suspended'
 };
 
@@ -227,7 +228,7 @@ export default function DriversPage() {
             <Card key={driver.id} className="overflow-hidden hover:shadow-lg transition-shadow relative">
                   <Badge 
                     variant="secondary" 
-                    className='absolute top-4 left-4 text-xs font-medium capitalize'
+                    className={`${statusColors[driver.status] || 'bg-gray-500'} text-white absolute top-2 left-2 text-xs font-medium capitalize`}
                   >
                     {driver.status === 'busy' ? 'Busy':''}
                   </Badge>
@@ -245,16 +246,28 @@ export default function DriversPage() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold text-gray-800">{driver.user.name}</h2>
-                  <p className="text-sm text-gray-600 capitalize">{driver.type.replace('_', ' ')}</p>
+                  <p className="text-sm text-gray-600 capitalize flex items-center gap-1">
+                    <span>
+                        {driver.type.replace('_', ' ')}
+                    </span>
+                    <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Info size={16}/>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{driver.type==='monthly' ? 'Monthly Paid Driver' : (driver.type === 'both' ? 'The Driver is paid Monthly and takes partial commissions per delivery' : 'The Driver is Paid Per Delivery')}</p>
+                    </TooltipContent>
+                    </Tooltip>
+                </p>
                 </div>
-                {driver.status === 'online' || driver.status === 'offline' ? (
+                {driver.status === 'online' || driver.status === 'offline' || driver.status === 'busy' ? (
                    <div className="flex flex-col items-center gap-1">
                       <Switch
-                         checked={driver.status === 'online'}
+                         checked={driver.status === 'online' || driver.status === 'busy'}
                          onCheckedChange={(isChecked) => handleAvailabilityChange(driver.id, isChecked)}
                       />
                       <span className="text-xs text-gray-500">
-                         {statusLabels[driver.status] || driver.status}
+                         {statusLabels[driver.status] }
                       </span>
                    </div>
                 ) : (

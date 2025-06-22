@@ -37,19 +37,9 @@ const sidebarItems = [
     icon: <Store className="w-5 h-5" />
   },
   {
-    title: 'Items',
-    href: '/restaurants-owner/items',
-    icon: <Hamburger className="w-5 h-5" />
-  },
-  {
     title: 'Drivers Management',
     href: '/restaurants-owner/drivers',
     icon: <Truck className="w-5 h-5" />
-  },
-  {
-    title: 'Deliveries Management',
-    href: '/restaurants-owner/deliveries',
-    icon: <Package className="w-5 h-5" />
   },
   {
     title: 'Zones Management',
@@ -57,14 +47,24 @@ const sidebarItems = [
     icon: <MapPin className="w-5 h-5" />
   },
   {
+    title: 'Deliveries Management',
+    href: '/restaurants-owner/deliveries',
+    icon: <Package className="w-5 h-5" />
+  },
+  {
+    title: 'Payroll',
+    href: '/restaurants-owner/invoices',
+    icon: <Receipt className="w-5 h-5" />
+  },
+  {
+    title: 'Items',
+    href: '/restaurants-owner/items',
+    icon: <Hamburger className="w-5 h-5" />
+  },
+  {
     title: 'Working Hours',
     href: '/restaurants-owner/working-hours',
     icon: <Clock className="w-5 h-5" />
-  },
-  {
-    title: 'Employees Management',
-    href: '/restaurants-owner/employees',
-    icon: <Users className="w-5 h-5" />
   },
   {
     title: 'Clients Management',
@@ -77,10 +77,11 @@ const sidebarItems = [
     icon: <CreditCard className="w-5 h-5" />
   },
   {
-    title: 'Payroll',
-    href: '/restaurants-owner/invoices',
-    icon: <Receipt className="w-5 h-5" />
+    title: 'Employees Management',
+    href: '/restaurants-owner/employees',
+    icon: <Users className="w-5 h-5" />
   },
+
 ];
 
 const SidebarContent = ({ user, pathname, isCollapsed }) => (
