@@ -28,11 +28,11 @@ export default function DriverPage() {
   const [selectedDelivery, setSelectedDelivery] = useState(null);
 
   useEffect(() => {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    });
-
+    if( typeof window !== 'undefined'){
+        window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+        });
     // Check if user is authenticated
     const token = localStorage.getItem('token');
     if (!token) {
@@ -48,6 +48,8 @@ export default function DriverPage() {
       router.push('/driver/login');
       return;
     }
+    }
+
 
     fetchDriverData();
   }, [router]);
