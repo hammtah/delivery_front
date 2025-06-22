@@ -57,7 +57,7 @@ export default function ClientDetailsPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen ml-[12%]">
+            <div className="flex items-center justify-center min-h-screen ml-[280px]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
             </div>
         );
@@ -65,14 +65,14 @@ export default function ClientDetailsPage() {
 
     if (!client) {
         return (
-            <div className="flex items-center justify-center min-h-screen ml-[12%]">
+            <div className="flex items-center justify-center min-h-screen ml-[280px]">
                 <p className="text-gray-500">Client not found</p>
             </div>
         );
     }
 
     return (
-        <main className="p-6 ml-[12%] w-[88%]">
+        <main className="p-6 ml-[280px] w-[calc(100%-280px)]">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Client Details</h1>
             </div>
