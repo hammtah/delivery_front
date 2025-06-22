@@ -9,11 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { getApiUrl } from '@/utils/api';
-
+import Link from 'next/link';
+import {Button} from '@/components/ui/button';
 export default function InvoicePage() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,6 +77,7 @@ export default function InvoicePage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Deliveries</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -103,6 +106,13 @@ export default function InvoicePage() {
                       <span className="text-gray-500">No deliveries</span>
                     )}
                   </TableCell>
+                    <TableCell className="text-right">
+                        <Link href={`/restaurants-owner/invoice/${invoice.id}`} rel="noopener noreferrer">
+                            <Button variant ="outline" className="flex items-center justify-center">
+                                <Eye className="w-5 h-5 text-blue-500 hover:text-blue-700 cursor-pointer" />
+                            </Button>
+                        </Link>
+                    </TableCell>
                 </TableRow>
               ))}
             </TableBody>
